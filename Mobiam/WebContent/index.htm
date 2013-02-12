@@ -1,0 +1,392 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+  <title>MOBIAM 0.0.3</title> 
+  <!--<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a1/jquery.mobile-1.0a1.min.css" />
+  <script src="http://code.jquery.com/jquery-1.4.3.min.js"></script>
+  <script src="http://code.jquery.com/mobile/1.0a1/jquery.mobile-1.0a1.min.js"></script>-->
+  <link rel="stylesheet" type="text/css" media="screen" href="./lib/jquery.mobile.css" />
+  <script src="./lib/jquery.js"></script>
+  <script src="./lib/jquery.mobile.js"></script>
+  <script src="./MOBIAM-Protocol-0-0-3.js"></script>
+  <script src="./MOBIAM-Utility.js"></script>
+  
+  <script>
+	//GFOS Innovationsaward 2013
+	//       MOBIAM 0.0.3
+	//(C) Niklas Weissner 2012/2013
+	//	  Julian Lorra 2012/2013
+	//	  Dennis Szczesny 2012/2013
+	//-----------------------------
+  
+	//Konstanten
+	var CLIENT_PROTOCOL_VERSION = "0.0.3";
+	
+	//GUI-Konstanten
+	var UI_ICON_ATTENDANT_TRUE = "http://icons.iconarchive.com/icons/deleket/scrap/256/Aqua-Ball-Green-icon.png";
+	var UI_ICON_ATTENDANT_FALSE = "http://icons.iconarchive.com/icons/deleket/scrap/256/Aqua-Ball-Red-icon.png";
+	
+	var timeLeft = 0;
+	var logoutTimer;
+	var currentSession; //Eventuell bessere Alternative finden
+	var attendanceData; //Aktuelle Anwesenheitsdatan (Objektarray)
+	
+	//Ausführung starten wenn Dokument vollständig geladen ist
+	$(document).ready(
+	function()
+	{
+		//Überprüfe auf noch gültigen Login
+		var sessionCookie = getCookie(SESSION_COOKIE_ID);
+		if(sessionCookie != null)
+		{
+			//Versuchen, Sitzung wiederherzustellen
+			refreshSession(sessionCookie);
+		}else
+		{
+			//Keine Sitzungswiederherstellung
+			showLoginForm();
+		}
+	
+		//Event bei klicken auf den Login-Button
+		$(".loginBtt").click(
+		function()
+		{ 
+			doLogin();
+		});
+		
+		//Event bei klicken auf einen von den Logout-Buttons
+		$(".logoutBtt").click(
+		function()
+		{
+			doLogout();
+		});
+	});
+	
+	//Schließt Hinweis auf der Loginseite
+	function hideLoginNotification()
+	{
+		$("#loginNotifyLabel").hide();
+	}
+	
+	//Zeigt Hinweis auf der Loginseite mit Hinweistext an
+	function showLoginNotification(text)
+	{
+		$("#loginNotifyLabel").show();
+		$("#loginNotifyLabel").html(text);
+	}
+	
+	//Versucht eine Sitzung zu erneuern
+	function refreshSession(id)
+	{
+		/*Simulation hinfällig
+		//Simulation eines keep-Alive-Aufrufes mit SessionID id
+		var recvMsg = {};
+			recvMsg.type = "success";
+			recvMsg.sessionID = id;//Echo der SessionID könnte im endgültigen Service fehlen
+			recvMsg.timeLeft = 60;*/
+		var params = 
+		{
+			sessionID: id
+		};
+		
+		callService("keepalive",params,
+		function(recvMsg)
+		{		
+			if(recvMsg.type == MSG_TYPE_SUCCESS)
+			{
+				timeLeft = recvMsg.timeLeft;
+				currentSession = recvMsg.sessionID;
+				setCookie(SESSION_COOKIE_ID,recvMsg.sessionID,timeLeft);
+				showDataView();
+			}else if(recvMsg.type == MSG_TYPE_ERROR)
+			{
+				if(recvMsg.errorId == ERROR_INVALID_SESSION)
+				{
+					showLoginForm();
+				}
+			}
+		});
+	}
+	
+	//Ruft den Datenservice auf und lädt Liste mit neuen Anwesenheitsdaten
+	function refreshDataList()
+	{
+		var params = 
+		{
+			sessionID: currentSession,
+			filter: ""
+		};
+		callService("list",params,
+		function(data)
+		{
+			if(data.type == MSG_TYPE_SUCCESS)
+			{
+				attendanceData = data.data;
+				loadDataList(data.data);
+			}
+		});
+	}
+	
+	//Entleert die Anwesenheitsliste und führt einen refresh durch
+	function clearDataList()
+	{
+		var listView = $("#dataList");
+		listView.html("");
+		listView.listview("refresh");
+	}
+	
+	//Erneuert die Anwesenheitsliste mit den Anwesenheitsdaten im Array data (Datem müssen Protokollkonform sein)
+	function loadDataList(data)
+	{
+		//Einträge in der Datenliste sortieren, damit Liste und Trenner korrekt eingefügt werden
+		var compareNameObject = 
+			function(a,b) 
+			{
+				if (a.name < b.name)
+					return -1;
+				if (a.name > b.name)
+					return 1;
+				return 0;
+			};	
+		data.sort(compareNameObject);
+		
+		var newListHtml = "";
+		var listView = $("#dataList");
+		listView.html("");
+		
+		for(var i = 0; i<data.length;i++)
+		{
+			var pers = data[i];
+			
+			newListHtml += "<li data-filtertext='" + pers.name + "'>";
+			newListHtml += "<h3>" + pers.name + "</h3>";
+			if(!pers.attendance && pers.cause != null)
+				newListHtml += "<p>" + pers.cause + "</p>";
+			newListHtml += "<p class='ui-li-aside'><img width=32 height=32 src='" +
+				(pers.attendance ? UI_ICON_ATTENDANT_TRUE : UI_ICON_ATTENDANT_FALSE) + "' alt='" + 
+				(pers.attendance ? "Anwesend" : "Nicht anwesend") + "'></img></p>";
+			newListHtml += "</li>";
+		}
+		listView.html(newListHtml);
+		listView.listview("refresh");
+	}
+	
+	function doLogin()
+	{
+		//alert("Let's act like you have just been logged in");
+		//alert("Here, have a cookie.");
+		
+		//Simulation einer empfangenen Nachricht (login-Service)
+		//Simulation hinfällig
+		/*var recvMsg = {};
+			recvMsg.type = "success";
+			recvMsg.sessionID = "CAFEBABE";
+			recvMsg.timeLeft = 60;*/
+		var v_tenant = $("#tenant_input").val();
+		var v_office = $("#office_input").val();
+		var v_empid = $("#empid_input").val();
+		var v_pass = $("#pass_input").val(); //Hier später Passwort-Hash generieren
+		
+		$("#pass_input").val("");//Passwortfeld zu Sicherheitszwecken leeren
+		
+		var loginData = 
+			{
+				tenant: v_tenant,
+				office: v_office,
+				empid: v_empid,
+				pass: v_pass
+			};
+			
+		callService("login",loginData,function(recvMsg)
+		{
+			if(recvMsg.type == MSG_TYPE_SUCCESS)
+			{
+				timeLeft = recvMsg.timeLeft;
+				currentSession = recvMsg.sessionID;
+				setCookie(SESSION_COOKIE_ID,recvMsg.sessionID,timeLeft);
+				showDataView();
+				$("#tenant_statuslabel").html("");
+				$("#office_statuslabel").html("");
+				$("#empid_statuslabel").html("");
+				$("#pass_statuslabel").html("");
+			}else if(recvMsg.type == MSG_TYPE_ERROR)
+			{
+				if(recvMsg.errorID == ERROR_MISSING_FIELDS)
+				{
+					$("#tenant_statuslabel").html("");
+					$("#office_statuslabel").html("");
+					$("#empid_statuslabel").html("");
+					$("#pass_statuslabel").html("");
+					for(var i = 0; i<recvMsg.missingData.length;i++)
+						$("#" + recvMsg.missingData[i] + "_statuslabel").html("<font color='#9E2020'>Dieses Feld muss ausgef&uuml;llt werden!</font>");
+				}else if(recvMsg.errorID == ERROR_BAD_LOGIN_DATA)
+				{
+					$("#tenant_statuslabel").html("");
+					$("#office_statuslabel").html("");
+					$("#empid_statuslabel").html("");
+					$("#pass_statuslabel").html("<font color='#9E2020'>Fehlerhafte Logindaten!</font>");
+				}
+			}
+		});
+	}
+	
+	function doLogout()
+	{
+		//alert("There's still no server, so I'm kicking you out without logoff.");
+		//alert("Oh, and give me that cookie back!!!");
+		var params = 
+		{
+			sessionID: currentSession
+		};
+		
+		callService("logout",params,
+		function(recvMsg)
+		{
+			if(recvMsg.type == MSG_TYPE_ERROR && recvMsg.errorID == ERROR_COULD_NOT_LOGOUT)
+			{
+				//Alle Fehlermeldungen bis auf explizite Logoutfehler des Services werden ignoriert.
+				//Eine ungültige SessionID muss nicht als grund gesehen werden, die lokale Sitzung beizubehalten, da
+				//der Service die Sitzung sowieso als ungültig ansieht und so kann der Client ohne das OK des Services
+				//die Sitzung beenden
+				alert("Technischer Fehler: Logout fehlgeschlagen.\nVersuchen sie es später erneut und/oder kontaktieren\nsie ihren Systemadmin.");
+				return;
+			}
+			clearDataList();
+			setCookie(SESSION_COOKIE_ID,currentSession,0);
+			showLoginForm();
+		});
+	}
+	
+	function startLogoutTimer()
+	{
+		logoutTimer = setInterval(function(){refreshLogoutTimer()},1000);
+	}
+	
+	function stopLogoutTimer()
+	{
+		clearInterval(logoutTimer);
+	}
+	
+	function refreshLogoutTimer()
+	{
+		if(timeLeft-- <= 0)
+		{
+			//alert("You are now logged out automatically...");
+			doLogout();
+			showLoginNotification("Sie wurden automatisch ausgeloggt");
+			return;
+		}
+			
+		var seconds = timeLeft%60;
+		var minutes = Math.floor(timeLeft/60);
+		$("#autoLogoutLabel").html("Automatischer Logout in " + minutes + ":" + ((seconds > 9) ? "" : "0") + seconds);
+	}
+	
+	//Zeigt das Login-Formular an
+	function showLoginForm()
+	{
+		hideLoginNotification();
+		stopLogoutTimer();
+		showSubcontent("loginForm");
+	}
+	
+	//Zeigt das Datenansichtsformular an
+	function showDataView()
+	{	
+		startLogoutTimer();
+		refreshLogoutTimer();
+		refreshDataList();
+		showSubcontent("dataView");
+	}
+	
+	//Zeigt Header, Footer und Contents der Gruppe name an und blendet alle anderen aus
+	function showSubcontent(name)
+	{
+		hideAllContent();
+		
+		$("#content_"+ name).show();
+		$("#header_" + name).show();
+		$("#footer_" + name).show();
+	}
+	
+	//Blendet alle Header, Footer und Contents aus
+	function hideAllContent()
+	{
+		$("div[data-role='header']").hide();
+		$("div[data-role='content']").hide();
+		$("div[data-role='footer']").hide();
+	}
+	
+  </script>
+</head> 
+<body> 
+
+<div data-role="page" data-theme="b" id="home">
+
+	<!-- Loginformular -->
+	<div data-role="header" id="header_loginForm" data-theme="b" data-nobackbtn="true">
+		<h1>MOBIAM Login</h1>
+	</div>  
+	
+	<div data-role="content" data-theme="b" align="center" id="content_loginForm" data-theme="a">  
+	
+		<a href="javascript:hideLoginNotification();" data-role="button" id="loginNotifyLabel" data-theme="e" data-icon="delete"></a>
+		
+		<div data-role="fieldcontain">
+			<label for="tenant_input">Mandant</label>
+			<input type="text"  name="tenant_input" id="tenant_input" value="" /><br>
+			<div id="tenant_statuslabel"></div>
+		</div>
+		
+		<div data-role="fieldcontain">
+			<label for="office_input">Werk</label>
+			<input type="text" name="office_input" id="office_input"/><br>
+			<div id="office_statuslabel"></div>  
+		</div>
+		
+		<div data-role="fieldcontain">
+			<label for="empid_input">Personalnummer</label>
+			<input type="text" name="empid_input" id="empid_input"/><br>
+			<div id="empid_statuslabel"></div>  
+		</div>
+		
+		<div data-role="fieldcontain">
+			<label for="pass_input">Passwort</label>
+			<input type="password" name="pass_input" id="pass_input"/><br>
+			<div id="pass_statuslabel"></div>  
+		</div>
+		
+		<div data-role="fieldcontain">
+			<input type="button" class="loginBtt" value="Login"/>
+		</div>
+	</div>
+	
+	<!-- Datenansicht -->
+	<div data-role="header" id="header_dataView" data-theme="b" data-nobackbtn="true">
+		<h1>MOBIAM</h1>
+	</div> 
+	
+	<div data-role="content" id="content_dataView" data-theme="b">  
+			<h1>Willkommen, &lt;Herr/Frau&gt; &lt;Subjektname hier&gt;</h1>
+			<p>Sie sind angemeldet im Werk &lt;Werkname hier&gt;</p>
+			<br>
+			<ul data-role="listview" data-icon="search" id="dataList" data-filter="true" data-autodividers="true" data-filter-placeholder="Suche Person..." data-filter-theme="d" data-theme="d" data-divider-theme="d">
+				<!-- Anwesenheitsliste (wird vom Skript gefüllt) -->
+			</ul>
+	</div>
+	
+	<div data-role="footer" data-theme="b" id="footer_loginForm"></div>
+	<div data-role="footer" data-theme="b" id="footer_dataView">
+		<input type="button" class="logoutBtt" value="Logout" />
+		<div align="center" id="autoLogoutLabel"></div>
+	</div>
+	
+	<!-- Dialoge und Popups -->
+	<div data-role="popup" id="autoLogoutNotification" data-posotion-to="#header_loginForm" data-theme="e">
+		<a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Schlie&szml;en</a>
+		Sie wurden automatisch ausgeloggt.
+	</div>	
+</div>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+	<title>TESTUMGEBUNG</title> 
+	<!--<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a1/jquery.mobile-1.0a1.min.css" />
+	<script src="http://code.jquery.com/jquery-1.4.3.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.0a1/jquery.mobile-1.0a1.min.js"></script>-->
+	<link rel="stylesheet" href="./lib/jquery.mobile.css" />
+	<script src="./lib/jquery.js"></script>
+	<script src="./lib/jquery.mobile.js"></script>
+  
+	<script>
+		$(document).ready(
+		function()
+		{
+			$.get("http://www.ludumdare.com/compo/",{},
+			function(data)
+			{
+				$("#testi").html(data);
+			});
+		});
+	</script>
+</head>
+<body>
+	<center><h1>TESTUMGEBUNG F&Uuml;R EXPERIMENTE ETC.</h1></center><br><br>
+	<div id="testi"></div>
+</body>
+</html>	
+
+	

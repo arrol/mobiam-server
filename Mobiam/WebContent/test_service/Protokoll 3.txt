@@ -1,0 +1,87 @@
+[------------------------------]
+[--GFOS Innovationsaward 2013--]
+[------------------------------]
+[--MOBIAM-Protokoll-Entwurf 3--]
+[---(C) 2013 Niklas Weissner---]
+[------------------------------]
+
+[--!!!ÄNDERUNGEN seit V.2 !!!--]
+
+Alle Sitzungserneuernden Services(keepalive, list und login) geben übrige Zeit 
+für die Sitzung (in Sekunden) zurück. So kann die Gültigkeit einer Sitzung zentral
+geregelt werden und die Clients können sich darauf synchronisieren, sodass jeder 
+Client(asynchron) die verbleibende Zeit anzeigen kann.
+
+Das Rückgabeformat wurde auf JSON geändert, da JQuery einen Parser dafür mitbringt und
+Rückgabewerte von Services somit direkt in JavaScript-Objekte umgewandelt werden können.
+Eventuell sollten auch alle XML-Rückgabedaten durch JSON ersetzt werden, da XML aufwendig
+zu parsen ist und JQuery nur begrenzt(und auch nur indirekt) Unterstützung dafür liefert.
+
+[-----------Services-----------]
+
+[login]
+Login-Prozess. Loggt den Nutzer mit einem Passwort ein und gibt die Sitzungs-ID
+zurück, die für allle Interaktionsprozesse benötigt wird. Das Passwort sollte
+nur als Hash-Wert(SHA wäre zu bevorzugen) übermittelt werden. Der Webservice sollte
+das Passwort auch nur als Hash-Wert speichern und bei einem Login die beiden
+Hashes vergleichen, sodass an keiner Stelle dass Passwort als Klartext die 
+Loginmaske des Clients verlässt. Der Service sendet die Gültigkeitsdauer der neuen
+Sitzung in Sekunden mit.
+Parameter:
+	username: 	Nutzer der eingeloggt werden soll
+	password:	Hashwert des Passworts
+
+[keepalive]
+Erneuert eine Sitzung ohne eine Aktion durchzuführen. Gibt die (nach der Erneuerung)
+verbleibende Zeit in Sekunden zurück.
+Parameter:
+	session:	Die zu erneuernde Sitzung
+
+[list]
+Gibt ein Objekt mit Anwesenheitsdaten zurück. Der Service filtert anhand interner
+Einschränkungen einer Sitzung und anhand Filterausdrücken im Regex-Format, die der Client 
+mitsenden kann. Eine [list]-Abfrage erneuert zudem die Sitzung des Nutzers. Der Service gibt
+zusätzlich die (nach der Erneuerung) verbleibende Zeit in Sekunden zurück.
+Parameter:
+	session:	Die Sitzung des Nutzers der eine Anfrage stellt
+	filter:		Regex-Strings, getrennt mit Kommas, die Filterkriterien angeben
+
+[logout]
+Beendet eine Sitzung. Nach dem Beenden ist die Gültigkeit der Sitzungs-ID komplett
+entfallen. Will der Nutzer weitere Abfragen stellen, ein neuer Login-Vorgang 
+durchgeführt werden.
+Parameter:
+	session:	Die zu beendende Sitzung	
+
+Alle Services sollten ihre Parameter als HTTP-POST erhalten, da diese Methode im
+Gegensatz zu GET die Parameter nicht im Cache speichert und bei POST keine Daten in
+der URL erkennbar sind. Das Rückgabeformat ist JSON. Sowohl Status-, Fehler- und
+Erfolgsmeldungen als auch Anwesenheitsdaten können in JSON ausgezeichnet, dargestellt
+und für den JavaScript-Client passend formatiert werden.
+
+Alternativ können die Anwesenheitsdaten auch als XML-Daten in ein JSON-Objekt
+integriert werden. Die komplette Verwendung von JSON sollte aber aufgrund der begrenzten 
+XML-Parsingmöglichkeiten der Verwendung von XML vorgezogen werden.
+
+
+[-------Nachrichtenformat------]
+Jeder Service kann ein nach Belieben aufgebautes Objekt zurückgeben.
+Jedoch muss jedes Objekt das Feld "type" enthalten.
+Das Feld "type" dient zu Unterscheidung zwischen Fehlern, Erfolgsmeldungen etc. unter
+allen Rückgabewerten. Ein Objekt das kein "type" enthält wird als ungültig betrachtet
+und vom Client verworfen/mit einer Fehlermeldung behandelt.
+
+Mögliche Werte für "type" sind(aber nicht ausschliesslich!):
+	error
+	success
+
+Eine Fehlermeldung sollte immer das Feld "message" enthalten, dass eine genauere
+Fehlerbeschreibung des Servers enthält. Zur Clientspezifischen Verarbeitung sollte auch
+das Feld "code" vorhanden sein, dass jeden Fehler eindeutig als Zahl identifiziert
+(Bsp: 109 für Nutzername nicht registriert). So kann ein Client eigene Fehlermeldungen ausgeben
+wenn der Server beispielsweise nur englische Fehlernachrichten zurückgibt.
+
+Alle anderen Rückgabeobjekte können je nach Service anders formatiert werden. Der Client
+erwartet je nach aufgerufenem Service ein spezielles Rückgabeobjekt. Alles andere wird
+(wenn nicht als Fehler ausgezeichnet) als ungültiger Rückgabewert interpretiert.
+

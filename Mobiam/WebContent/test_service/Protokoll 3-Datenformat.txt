@@ -1,0 +1,9 @@
+Beispielpaket mit Anwesenheitsdaten
+
+{
+	"type":"success",
+	"data":[{"id":15212,"name":"David Robert Jones","attendance":true,"cause":null},
+		{"id":10123,"name":"Walter Bishop","attendance":false,"cause":"Krankgeschrieben"},
+		{"id":43152,"name":"Olivia Dunham","attendance":true,"cause":null}],
+	"timeLeft":600
+}
