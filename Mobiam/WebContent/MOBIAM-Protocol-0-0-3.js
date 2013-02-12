@@ -31,7 +31,7 @@ function callService(serviceName, parameter, serviceCallback)
 	$.ajax(
 	{
 		type: "post",
-		url: "localhost:8080/Mobiam/REST/WebService/Clientrequest",
+		url: "http://localhost:8080/Mobiam/REST/WebService/Clientrequest",
 		dataType: "json",
 		data: parameter,
 		success: 
