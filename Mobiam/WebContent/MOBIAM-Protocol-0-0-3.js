@@ -17,7 +17,7 @@ var ERROR_INVALID_SESSION = 102; //Ungültige Sitzungs-ID
 var ERROR_BAD_LOGIN_DATA = 210; //Fehlerhafte Logindaten
 
 //Verbindungskonstanten
-var SERVICE_HOST = "./test_service/";//Hier eventuell mit JSP Servicadresse einsetzen
+var SERVICE_HOST = "./REST/WebService/";//Hier eventuell mit JSP Servicadresse einsetzen
 var SERVICE_POSTFIX = ".php";
 
 //Nachrichtenkonstanten
@@ -27,11 +27,11 @@ var MSG_TYPE_ERROR = "error";
 //Ruft einen Service anhand seiner Bezeichnung auf und führt bei Erfolg die serviceCallback-Funktion mit Nachricht als Paramter aus
 function callService(serviceName, parameter, serviceCallback)
 {
-	var adress = SERVICE_HOST + serviceName + SERVICE_POSTFIX;
+	var adress = SERVICE_HOST + serviceName + "/" ;
 	$.ajax(
 	{
 		type: "post",
-		url: "http://localhost:8080/Mobiam/REST/WebService/Clientrequest",
+		url: adress,
 		dataType: "json",
 		data: parameter,
 		success: 
