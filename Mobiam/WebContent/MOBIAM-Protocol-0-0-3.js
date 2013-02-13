@@ -18,7 +18,7 @@ var ERROR_BAD_LOGIN_DATA = 210; //Fehlerhafte Logindaten
 
 //Verbindungskonstanten
 var SERVICE_HOST = "./REST/WebService/";//Hier eventuell mit JSP Servicadresse einsetzen
-var SERVICE_POSTFIX = ".php";
+var SERVICE_POSTFIX = "/";
 
 //Nachrichtenkonstanten
 var MSG_TYPE_SUCCESS = "success";
@@ -27,7 +27,7 @@ var MSG_TYPE_ERROR = "error";
 //Ruft einen Service anhand seiner Bezeichnung auf und führt bei Erfolg die serviceCallback-Funktion mit Nachricht als Paramter aus
 function callService(serviceName, parameter, serviceCallback)
 {
-	var adress = SERVICE_HOST + serviceName + "/" ;
+	var adress = SERVICE_HOST + serviceName + SERVICE_POSTFIX ;
 	$.ajax(
 	{
 		type: "post",

@@ -20,11 +20,12 @@ import com.google.gson.JsonObject;
 public class Clientconnector {
 	
 	//TO
-	String example_tenant = "a";
-	String example_office = "a";
-	String example_empid = "a";
-	String example_pass   = "a";
+	String example_tenant = "Knifto Industries";
+	String example_office = "Bochum";
+	String example_empid = "1";
+	String example_pass   = "gfos";
 	String example_session = "cafebabe";
+	String example_name = "Herr Gordon Freeman";
 	int example_sessiontime = 120;
 	
 	//TODO: define login D
@@ -154,6 +155,29 @@ public class Clientconnector {
 		return feeds;
 	}
 	
+	@POST
+	@Path("/identifyMe")
+	@Produces("application/json")
+	public String indentifyMe(@FormParam("sessionID") String sessionID)
+	{
+		JsonObject jo= new JsonObject();
+		String feeds  = "";
+		if(sessionID.equals(example_session))
+		{
+			jo.addProperty("type", "success");
+			jo.addProperty("name", example_name);
+			jo.addProperty("tenant",example_tenant);
+			jo.addProperty("office", example_office);
+			jo.addProperty("empid", example_empid);
+		}else
+		{
+			jo.addProperty("type", "error");
+			jo.addProperty("message", "Bad session!");
+			jo.addProperty("errorID", 102);
+		}
+		feeds = jo.toString();
+		return feeds;
+	}
 	
 	
 }

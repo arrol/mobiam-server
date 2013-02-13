@@ -23,13 +23,15 @@
 	var CLIENT_PROTOCOL_VERSION = "0.0.3";
 	
 	//GUI-Konstanten
-	var UI_ICON_ATTENDANT_TRUE = "http://icons.iconarchive.com/icons/deleket/scrap/256/Aqua-Ball-Green-icon.png";
-	var UI_ICON_ATTENDANT_FALSE = "http://icons.iconarchive.com/icons/deleket/scrap/256/Aqua-Ball-Red-icon.png";
+	//Vorläufige Beispielicon von iconarchive.com
+	var UI_ICON_ATTENDANT_TRUE = "./img/status-2.png";
+	var UI_ICON_ATTENDANT_FALSE = "./img/status-0.png";
 	
-	var timeLeft = 0;
-	var logoutTimer;
-	var currentSession; //Eventuell bessere Alternative finden
+	var timeLeft = 0; //Überige Zeit bis zum automatischen Logout
+	var logoutTimer; //ID des Logout-Timers
+	var currentSession; //Aktuelle Sitzung
 	var attendanceData; //Aktuelle Anwesenheitsdatan (Objektarray)
+	var loginData; //Aktuelle Logindaten
 	
 	//Ausführung starten wenn Dokument vollständig geladen ist
 	$(document).ready(
@@ -65,24 +67,26 @@
 	//Schließt Hinweis auf der Loginseite
 	function hideLoginNotification()
 	{
-		$("#loginNotifyLabel").hide();
+		//$("#loginNotifyLabelBox").hide();
+		//$("#loginNotifyLabel").html("");
 	}
 	
 	//Zeigt Hinweis auf der Loginseite mit Hinweistext an
 	function showLoginNotification(text)
 	{
-		$("#loginNotifyLabel").show();
-		$("#loginNotifyLabel").html(text);
+		//$("#loginNotifyLabelBox").show();
+		//$("#loginNotifyLabel").html(text);
 	}
 	
-	//Versucht eine Sitzung zu erneuern
+	//Versucht eine Sitzung zu erneuern. Wenn Service erfolg meldet, wird die neue Lebenszeit übernommen
+	//und die Sitzungsnummer auf das Echo-Feld gesetzt(für den Fall einer Änderung der ID)
 	function refreshSession(id)
 	{
 		/*Simulation hinfällig
 		//Simulation eines keep-Alive-Aufrufes mit SessionID id
 		var recvMsg = {};
 			recvMsg.type = "success";
-			recvMsg.sessionID = id;//Echo der SessionID könnte im endgültigen Service fehlen
+			recvMsg.sessionID = id;//EDIT: Echo der Session ist pflicht
 			recvMsg.timeLeft = 60;*/
 		var params = 
 		{
@@ -104,6 +108,24 @@
 				{
 					showLoginForm();
 				}
+			}
+		});
+	}
+	
+	function refreshUserIdent()
+	{
+		var params = 
+		{
+			sessionID: currentSession	
+		};
+		callService("identifyMe",params,
+		function(data)
+		{
+			if(data.type == MSG_TYPE_SUCCESS)
+			{
+				//Provisorisch, später aufteilen
+				$("#welcomeMessage").html("<h1>Willkommen, " + data.name + "</h1>" +
+						"<p>Sie sind angemeldet im Werk " + data.office + "</p>");
 			}
 		});
 	}
@@ -138,7 +160,7 @@
 	//Erneuert die Anwesenheitsliste mit den Anwesenheitsdaten im Array data (Datem müssen Protokollkonform sein)
 	function loadDataList(data)
 	{
-		//Einträge in der Datenliste sortieren, damit Liste und Trenner korrekt eingefügt werden
+		//Einträge in der Datenliste sortieren, damit Einträge und Trenner korrekt eingefügt werden
 		var compareNameObject = 
 			function(a,b) 
 			{
@@ -158,6 +180,7 @@
 		{
 			var pers = data[i];
 			
+			//HTML-Elemente der Einträge generieren
 			newListHtml += "<li data-filtertext='" + pers.name + "'>";
 			newListHtml += "<h3>" + pers.name + "</h3>";
 			if(!pers.attendance && pers.cause != null)
@@ -196,11 +219,13 @@
 				empid: v_empid,
 				pass: v_pass
 			};
-			
+		
 		callService("login",loginData,function(recvMsg)
 		{
 			if(recvMsg.type == MSG_TYPE_SUCCESS)
 			{
+				//Logingerfolg -> Sitzungsnummer übernehmen, Logouttimer setzen und
+				//zur Datenansicht wechseln
 				timeLeft = recvMsg.timeLeft;
 				currentSession = recvMsg.sessionID;
 				setCookie(SESSION_COOKIE_ID,recvMsg.sessionID,timeLeft);
@@ -211,16 +236,20 @@
 				$("#pass_statuslabel").html("");
 			}else if(recvMsg.type == MSG_TYPE_ERROR)
 			{
+				//Loginfehler
 				if(recvMsg.errorID == ERROR_MISSING_FIELDS)
 				{
+					//Service meldet dass benötigte Felder leer gelassen wurden
 					$("#tenant_statuslabel").html("");
 					$("#office_statuslabel").html("");
 					$("#empid_statuslabel").html("");
 					$("#pass_statuslabel").html("");
+					//Entsrepechend der Anforderungen des Services Hinweise setzen
 					for(var i = 0; i<recvMsg.missingData.length;i++)
 						$("#" + recvMsg.missingData[i] + "_statuslabel").html("<font color='#9E2020'>Dieses Feld muss ausgef&uuml;llt werden!</font>");
 				}else if(recvMsg.errorID == ERROR_BAD_LOGIN_DATA)
 				{
+					//Service meldet ungültige Logindaten
 					$("#tenant_statuslabel").html("");
 					$("#office_statuslabel").html("");
 					$("#empid_statuslabel").html("");
@@ -230,6 +259,7 @@
 		});
 	}
 	
+	//Startet einen Logoutvorgang und führt entsprechend der Antwort des Services eine Aktion aus
 	function doLogout()
 	{
 		//alert("There's still no server, so I'm kicking you out without logoff.");
@@ -251,32 +281,38 @@
 				alert("Technischer Fehler: Logout fehlgeschlagen.\nVersuchen sie es später erneut und/oder kontaktieren\nsie ihren Systemadmin.");
 				return;
 			}
+			//Kein expliziter Logoutfehler -> Logout kann lokal durchgeführt werden
 			clearDataList();
 			setCookie(SESSION_COOKIE_ID,currentSession,0);
 			showLoginForm();
 		});
 	}
 	
+	//Startet den Timer des lokalen automatischen Logouts
 	function startLogoutTimer()
 	{
 		logoutTimer = setInterval(function(){refreshLogoutTimer()},1000);
 	}
 	
+	//Stoppt den Timer des lokalen automatischen Logouts
 	function stopLogoutTimer()
 	{
 		clearInterval(logoutTimer);
 	}
 	
+	//Tick-Funktion des Logout-Timers
 	function refreshLogoutTimer()
 	{
 		if(timeLeft-- <= 0)
 		{
+			//Lokalen Auto-Logout starten wenn Timer abgelaufen ist
 			//alert("You are now logged out automatically...");
 			doLogout();
 			showLoginNotification("Sie wurden automatisch ausgeloggt");
 			return;
 		}
-			
+		
+		//Anzeige für verbleibende Zeit aktualisieren
 		var seconds = timeLeft%60;
 		var minutes = Math.floor(timeLeft/60);
 		$("#autoLogoutLabel").html("Automatischer Logout in " + minutes + ":" + ((seconds > 9) ? "" : "0") + seconds);
@@ -295,6 +331,7 @@
 	{	
 		startLogoutTimer();
 		refreshLogoutTimer();
+		refreshUserIdent();
 		refreshDataList();
 		showSubcontent("dataView");
 	}
@@ -330,7 +367,7 @@
 	
 	<div data-role="content" data-theme="b" align="center" id="content_loginForm" data-theme="a">  
 	
-		<a href="javascript:hideLoginNotification();" data-role="button" id="loginNotifyLabel" data-theme="e" data-icon="delete"></a>
+		<div id="loginNotifyLabel"></div>
 		
 		<div data-role="fieldcontain">
 			<label for="tenant_input">Mandant</label>
@@ -367,8 +404,7 @@
 	</div> 
 	
 	<div data-role="content" id="content_dataView" data-theme="b">  
-			<h1>Willkommen, &lt;Herr/Frau&gt; &lt;Subjektname hier&gt;</h1>
-			<p>Sie sind angemeldet im Werk &lt;Werkname hier&gt;</p>
+			<div id="welcomeMessage"></div>
 			<br>
 			<ul data-role="listview" data-icon="search" id="dataList" data-filter="true" data-autodividers="true" data-filter-placeholder="Suche Person..." data-filter-theme="d" data-theme="d" data-divider-theme="d">
 				<!-- Anwesenheitsliste (wird vom Skript gefüllt) -->
@@ -382,10 +418,6 @@
 	</div>
 	
 	<!-- Dialoge und Popups -->
-	<div data-role="popup" id="autoLogoutNotification" data-posotion-to="#header_loginForm" data-theme="e">
-		<a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Schlie&szml;en</a>
-		Sie wurden automatisch ausgeloggt.
-	</div>	
 </div>
 
 </body>
