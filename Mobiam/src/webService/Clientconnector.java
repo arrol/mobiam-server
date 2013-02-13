@@ -4,28 +4,21 @@ package webService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
-
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import database.Databaseconnector;
 
 
 @Path("/WebService")
 public class Clientconnector {
 	
 	//TO
-	String example_tenant = "Knifto Industries";
-	String example_office = "Bochum";
-	String example_empid = "1";
-	String example_pass   = "gfos";
 	String example_session = "cafebabe";
-	String example_name = "Herr Gordon Freeman";
 	int example_sessiontime = 120;
 	
 	//TODO: define login D
@@ -40,6 +33,8 @@ public class Clientconnector {
 		
 
 		JsonObject jo= new JsonObject();
+		String db = Databaseconnector.databaserequest("Select pass from database.users where tenant like '"+tenant+"' and office like '"+office+"' and empid like '"+empid+"'",1);
+		String[] databaseanswer = db.split(",");
 		
 		String feeds  = null;
 			if(tenant==null||office==null||empid==null||pass==null){
@@ -58,12 +53,10 @@ public class Clientconnector {
 				}
 				if(pass==null){
 					jo.addProperty("missingData","pass");
-				}
-				
-				
+				}	
 			}
 			else{
-				if(example_tenant.equals(tenant)&&example_office.equals(office)&&example_empid.equals(empid)&&example_pass.equals(pass))
+				if(databaseanswer[0].equals(pass))
 				{
 					jo.addProperty("type", "success");
 					jo.addProperty("sessionID", example_session);
@@ -73,6 +66,7 @@ public class Clientconnector {
 					jo.addProperty("type", "error");
 					jo.addProperty("message","Bad login data!");
 					jo.addProperty("errorID", 210);
+					jo.addProperty("pass", databaseanswer[0]);
 				}
 			}
 			
@@ -88,7 +82,7 @@ public class Clientconnector {
 	{
 		JsonObject jo= new JsonObject();
 		String feeds  = null;
-		if(!sessionID.equals(example_session)){	
+		if(!sessionID.equals(example_session)||sessionID==null){	
 			jo.addProperty("type", "error");
 			jo.addProperty("message", "Bad session!");
 			jo.addProperty("errorID", 102);
@@ -122,7 +116,7 @@ public class Clientconnector {
 		return feeds;
 	}
 	
-	//TODO: define list
+	//TODO: define list D
 	@POST
 	@Path("/list")
 	@Produces("application/json")
@@ -162,13 +156,17 @@ public class Clientconnector {
 	{
 		JsonObject jo= new JsonObject();
 		String feeds  = "";
-		if(sessionID.equals(example_session))
+		String db = Databaseconnector.databaserequest("Select userid name from database.sessions where sessionID like '"+sessionID+"'",1);
+		String[] databaseanswer = db.split(",");
+		if(sessionID!=null&&databaseanswer[0]!=null)
 		{
+			String db2 = Databaseconnector.databaserequest("Select name ,tenant, office, empid from database.users where idusers like '"+databaseanswer[0]+"'",4);
+			String[] databaseanswer2 = db2.split(",");
 			jo.addProperty("type", "success");
-			jo.addProperty("name", example_name);
-			jo.addProperty("tenant",example_tenant);
-			jo.addProperty("office", example_office);
-			jo.addProperty("empid", example_empid);
+			jo.addProperty("name", databaseanswer2[0]);
+			jo.addProperty("tenant",databaseanswer2[1]);
+			jo.addProperty("office", databaseanswer2[2]);
+			jo.addProperty("empid", databaseanswer2[3]);
 		}else
 		{
 			jo.addProperty("type", "error");
