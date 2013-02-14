@@ -49,11 +49,10 @@ public class Databaseconnector {
 			{
 				con = DriverManager.getConnection("jdbc:mysql://localhost:3306/database", "root","Lindenhof52");
 				Statement stmt = con.createStatement();
-				//stmt.execute(request);
-				//stmt.addBatch(request);
+				
 				
 				try{
-					r = stmt.executeUpdate(request);
+					stmt.executeUpdate(request);
 				}catch(SQLException e){
 					r= -200;
 				}

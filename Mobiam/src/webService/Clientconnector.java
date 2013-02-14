@@ -20,7 +20,6 @@ import database.Databaseconnector;
 public class Clientconnector {
 	
 	//TO
-	String example_session = "cafebabe";
 	int example_sessiontime = 120;
 	
 	private String generatesessionID(){
@@ -79,8 +78,9 @@ public class Clientconnector {
 					String SessionID = uniqesessionID();
 					
 					jo.addProperty("type", "success");
-					jo.addProperty("sessionID","INSERT INTO `database`.`sessions` (`userid`, `sessionid`) VALUES ('"+databaseanswer[1]+"', '"+SessionID+"')");
-					jo.addProperty("userID", Databaseconnector.databaseinsert("INSERT INTO `database`.`sessions` (`userid`, `sessionid`) VALUES ('"+databaseanswer[1]+"', '"+SessionID+"')"));
+					Databaseconnector.databaseinsert("INSERT INTO database.sessions (userid,sessionid) VALUES ('"+databaseanswer[1]+"', '"+SessionID+"')");
+					jo.addProperty("sessionID",SessionID);
+					jo.addProperty("userID",databaseanswer[1]);
 					jo.addProperty("timeLeft", example_sessiontime);	
 				}
 				else{
@@ -103,13 +103,16 @@ public class Clientconnector {
 	{
 		JsonObject jo= new JsonObject();
 		String feeds  = null;
-		if(!sessionID.equals(example_session)||sessionID==null){	
+		String db = Databaseconnector.databaserequest("Select userid name from database.sessions where sessionID like '"+sessionID+"'",1);
+		String[] databaseanswer = db.split(",");
+		if(sessionID!=null&&databaseanswer[0]!=null){
+			jo.addProperty("type", "success");
+			jo.addProperty("sessionID", databaseanswer[0]);
+		}else{
 			jo.addProperty("type", "error");
 			jo.addProperty("message", "Bad session!");
 			jo.addProperty("errorID", 102);
-		}else{
-			jo.addProperty("type", "success");
-			jo.addProperty("sessionID", example_session);
+			
 		}
 		
 		feeds = jo.toString();
@@ -124,14 +127,18 @@ public class Clientconnector {
 	{
 		JsonObject jo= new JsonObject();
 		String feeds  = null;
-		if(!sessionID.equals(example_session)){	
+		String db = Databaseconnector.databaserequest("Select userid name from database.sessions where sessionID like '"+sessionID+"'",1);
+		String[] databaseanswer = db.split(",");
+		if(sessionID!=null&&databaseanswer[0]!=null)
+		{
+			jo.addProperty("type", "success");
+			jo.addProperty("sessionID", databaseanswer[0]);
+			jo.addProperty("timeLeft", example_sessiontime);
+			
+		}else{
 			jo.addProperty("type", "error");
 			jo.addProperty("message", "Bad session!");
 			jo.addProperty("errorID", 102);
-		}else{
-			jo.addProperty("type", "success");
-			jo.addProperty("sessionID", example_session);
-			jo.addProperty("timeLeft", example_sessiontime);
 		}
 		feeds = jo.toString();
 		return feeds;
@@ -147,12 +154,10 @@ public class Clientconnector {
 		String feeds  = null;
 		
 		
-		
-		if(!sessionID.equals(example_session)){	
-			jo.addProperty("type", "error");
-			jo.addProperty("message", "Bad session!");
-			jo.addProperty("errorID", 102);
-		}else{
+		String db = Databaseconnector.databaserequest("Select userid name from database.sessions where sessionID like '"+sessionID+"'",1);
+		String[] databaseanswer = db.split(",");
+		if(sessionID!=null&&databaseanswer[0]!=null)
+		{
 			jo.addProperty("type", "success");
 			jo.addProperty("timeLeft", example_sessiontime);
 		    Gson gson = new Gson();
@@ -164,6 +169,11 @@ public class Clientconnector {
 		    
 			
 			jo.add("data", gson.toJsonTree(list, ArrayList.class));
+			
+		}else{
+			jo.addProperty("type", "error");
+			jo.addProperty("message", "Bad session!");
+			jo.addProperty("errorID", 102);
 		}
 		
 		feeds = jo.toString();
