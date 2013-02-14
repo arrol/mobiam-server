@@ -4,6 +4,8 @@ package webService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
+
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -21,6 +23,22 @@ public class Clientconnector {
 	String example_session = "cafebabe";
 	int example_sessiontime = 120;
 	
+	private String generatesessionID(){
+		String sessionID="";
+		Random rand = new Random();
+		for(int i=0; i<30; i++){
+			sessionID+=rand.nextInt(9);
+		}
+		
+		return sessionID;
+	}
+	private String uniqesessionID(){
+		String sessionID="";
+		sessionID= generatesessionID();
+		String db = Databaseconnector.databaserequest("select sessionid from database.sessions where sessionid like '"+sessionID+"'",1);
+		if (db!="")sessionID=uniqesessionID();
+		return sessionID;
+	}
 	//TODO: define login D
 	@POST
 	@Path("/login")
@@ -33,7 +51,7 @@ public class Clientconnector {
 		
 
 		JsonObject jo= new JsonObject();
-		String db = Databaseconnector.databaserequest("Select pass from database.users where tenant like '"+tenant+"' and office like '"+office+"' and empid like '"+empid+"'",1);
+		String db = Databaseconnector.databaserequest("Select pass, idusers from database.users where tenant like '"+tenant+"' and office like '"+office+"' and empid like '"+empid+"'",2);
 		String[] databaseanswer = db.split(",");
 		
 		String feeds  = null;
@@ -58,8 +76,11 @@ public class Clientconnector {
 			else{
 				if(databaseanswer[0].equals(pass))
 				{
+					String SessionID = uniqesessionID();
+					
 					jo.addProperty("type", "success");
-					jo.addProperty("sessionID", example_session);
+					jo.addProperty("sessionID","INSERT INTO `database`.`sessions` (`userid`, `sessionid`) VALUES ('"+databaseanswer[1]+"', '"+SessionID+"')");
+					jo.addProperty("userID", Databaseconnector.databaseinsert("INSERT INTO `database`.`sessions` (`userid`, `sessionid`) VALUES ('"+databaseanswer[1]+"', '"+SessionID+"')"));
 					jo.addProperty("timeLeft", example_sessiontime);	
 				}
 				else{

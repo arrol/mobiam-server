@@ -41,6 +41,36 @@ public class Databaseconnector {
 
 			return answer;
 	}
+	public static int databaseinsert(String request) {
+		int r=0;
+		Connection con = null;
+		
+			try 
+			{
+				con = DriverManager.getConnection("jdbc:mysql://localhost:3306/database", "root","Lindenhof52");
+				Statement stmt = con.createStatement();
+				//stmt.execute(request);
+				//stmt.addBatch(request);
+				
+				try{
+					r = stmt.executeUpdate(request);
+				}catch(SQLException e){
+					r= -200;
+				}
+				stmt.close();    				
+			}catch(SQLException e)
+			{
+				e.printStackTrace();
+				r=-500;
+			}
+			finally
+			{
+				if(con != null)
+					try {con.close();} catch (SQLException e){ e.printStackTrace();}
+			}
+
+			return r;
+}
 		
 
 
