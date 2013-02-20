@@ -6,6 +6,7 @@
   <script src="http://code.jquery.com/jquery-1.4.3.min.js"></script>
   <script src="http://code.jquery.com/mobile/1.0a1/jquery.mobile-1.0a1.min.js"></script>-->
   <link rel="stylesheet" type="text/css" media="screen" href="./lib/jquery.mobile.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="./MOBIAM-Style.css" />
   <meta name="viewport" content="height=device-height,width=device-width,initial-scale=1.0,maximum-scale=1.0" >
   <script src="./lib/jquery.js"></script>
   <script src="./lib/jquery.mobile.js"></script>
@@ -38,6 +39,21 @@
 	$(document).ready(
 	function()
 	{
+		//Event bei klicken auf den Login-Button
+		//Deaktiviert wegen umschreibung auf form-Tag
+		/*$(".loginBtt").click(
+		function()
+		{ 
+			doLogin();
+		});*/
+		
+		//Event bei klicken auf einen von den Logout-Buttons
+		$(".logoutBtt").click(
+		function()
+		{
+			doLogout();
+		});
+		
 		//Überprüfe auf noch gültigen Login
 		var sessionCookie = getCookie(SESSION_COOKIE_ID);
 		if(sessionCookie != null)
@@ -49,21 +65,29 @@
 			//Keine Sitzungswiederherstellung
 			showLoginForm();
 		}
-	
-		//Event bei klicken auf den Login-Button
-		$(".loginBtt").click(
-		function()
-		{ 
-			doLogin();
-		});
 		
-		//Event bei klicken auf einen von den Logout-Buttons
-		$(".logoutBtt").click(
-		function()
+		$(window).bind('scroll', function()
 		{
-			doLogout();
+		    if(!isScrolledIntoView("#dynamicFilterMarker"))
+		    {
+		    	$("#dynamicFilter").attr("class","MOBIAM_dynamic_list_filter");
+		    }else
+		    {
+		    	$("#dynamicFilter").attr("class","");	
+		    }
 		});
 	});
+	
+	function isScrolledIntoView(elem)
+	{
+	    var docViewTop = $(window).scrollTop();
+	    var docViewBottom = docViewTop + $(window).height();
+
+	    var elemTop = $(elem).offset().top;
+	    var elemBottom = elemTop + $(elem).height();
+
+	    return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+	}
 	
 	//Schließt Hinweis auf der Loginseite
 	function hideLoginNotification()
@@ -370,52 +394,72 @@
 	
 		<div id="loginNotifyLabel"></div>
 		
-		<div data-role="fieldcontain">
-			<label for="tenant_input">Mandant</label>
-			<input type="text"  name="tenant_input" id="tenant_input" value="" /><br>
-			<div id="tenant_statuslabel"></div>
-		</div>
-		
-		<div data-role="fieldcontain">
-			<label for="office_input">Werk</label>
-			<input type="text" name="office_input" id="office_input"/><br>
-			<div id="office_statuslabel"></div>  
-		</div>
-		
-		<div data-role="fieldcontain">
-			<label for="empid_input">Personalnummer</label>
-			<input type="text" name="empid_input" id="empid_input"/><br>
-			<div id="empid_statuslabel"></div>  
-		</div>
-		
-		<div data-role="fieldcontain">
-			<label for="pass_input">Passwort</label>
-			<input type="password" name="pass_input" id="pass_input"/><br>
-			<div id="pass_statuslabel"></div>  
-		</div>
-		
-		<div data-role="fieldcontain">
-			<input type="button" class="loginBtt" value="Login"/>
-		</div>
+		<form action="javascript:doLogin();">
+			<div data-role="fieldcontain">
+				<label for="tenant_input">Mandant</label>
+				<input type="text"  name="tenant_input" id="tenant_input" value="" /><br>
+				<div id="tenant_statuslabel"></div>
+			
+				<label for="office_input">Werk</label>
+				<input type="text" name="office_input" id="office_input"/><br>
+				<div id="office_statuslabel"></div>  
+			
+				<label for="empid_input">Personalnummer</label>
+				<input type="number" pattern="[0-9]*" name="empid_input" id="empid_input"/><br>
+				<div id="empid_statuslabel"></div>  
+			
+				<label for="pass_input">Passwort</label>
+				<input type="password" autocomplete="off" name="pass_input" id="pass_input"/><br>
+				<div id="pass_statuslabel"></div>
+				
+			</div>
+			
+			<div data-role="controlgroup" data-type="horizontal">
+				<input type="submit" class="loginBtt" data-icon="check" value="Login"/>
+				<input type="button" class="clearForm" data-icon="delete" data-iconpos="right" value="Felder l&ouml;schen"/>
+			</div> 
+			
+		</form>
 	</div>
+	
+	<div data-role="footer" data-theme="b" id="footer_loginForm"></div>
 	
 	<!-- Datenansicht -->
 	<div data-role="header" id="header_dataView" data-theme="b" data-nobackbtn="true">
 		<h1>MOBIAM</h1>
 	</div> 
 	
-	<div data-role="content" id="content_dataView" data-theme="b">  
+	<div data-role="content" id="content_dataView" data-theme="b" data-iscroll="enabled">  
 			<div id="welcomeMessage"></div>
 			<br>
-			<ul data-role="listview" data-icon="search" id="dataList" data-filter="true" data-autodividers="true" data-filter-placeholder="Suche Person..." data-filter-theme="d" data-theme="d" data-divider-theme="d">
-				<!-- Anwesenheitsliste (wird vom Skript gefüllt) -->
-			</ul>
+			<div id="dynamicFilterMarker"></div>
+			<div id="dynamicFilter">
+				<ul data-role="listview" data-icon="search" id="dataList" data-filter="true" data-autodividers="true" data-filter-placeholder="Suche Person..." data-filter-theme="d" data-theme="d" data-divider-theme="d">
+					<!-- Anwesenheitsliste (wird vom Skript gefüllt) -->
+				</ul>
+			</div>
 	</div>
 	
-	<div data-role="footer" data-theme="b" id="footer_loginForm"></div>
-	<div data-role="footer" data-theme="b" id="footer_dataView">
-		<input type="button" class="logoutBtt" value="Logout" />
-		<div align="center" id="autoLogoutLabel"></div>
+	<div data-role="footer" data-theme="b" id="footer_dataView" data-position="fixed" class="ui-bar">
+		<div align="right" id="autoLogoutLabel">
+			<!-- Label für Logouttimer (wird vom Skript gefüllt) -->
+		</div>
+		<a data-role="button" class="ui-btn-left" data-icon="delete" data-mini="true" href="javascript:doLogout();">Logout</a>
+	</div>
+	
+	<!-- Fehlerseite -->
+	<div data-role="header" id="header_errorPage" data-theme="b" data-nobackbtn="true">
+		<h1>MOBIAM</h1>
+	</div> 
+	
+	<div data-role="content" id="content_errorPage" data-theme="b">  
+			<h1>Fehler!</h1><br>
+			<p id="errorInfoLabel">
+				<!-- Fehlerinformationen (werden vom Skript eingefügt) -->
+			</p>
+	</div>
+	
+	<div data-role="footer" data-theme="b" id="footer_errorPage">
 	</div>
 	
 	<!-- Dialoge und Popups -->

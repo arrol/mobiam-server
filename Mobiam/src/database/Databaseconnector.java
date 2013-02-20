@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class Databaseconnector {
-
+	//database request with String return for reading data
 	public static String databaserequest(String request,int answers) {
 			
 			Connection con = null;
@@ -23,6 +23,7 @@ public class Databaseconnector {
     					while(i<=answers){
     						answer+= rs.getString(i++)+",";
     					}
+    					answer+=";";
     				}
     				
     				stmt.close();
@@ -41,6 +42,7 @@ public class Databaseconnector {
 
 			return answer;
 	}
+	//database request with int return for checking success
 	public static int databaseinsert(String request) {
 		int r=0;
 		Connection con = null;
@@ -69,8 +71,6 @@ public class Databaseconnector {
 			}
 
 			return r;
-}
-		
-
-
+	}
+	
 }

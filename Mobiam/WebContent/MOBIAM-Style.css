@@ -1,0 +1,13 @@
+.MOBIAM_dynamic_list_filter 
+{
+    padding-top : 45px;
+}
+
+.MOBIAM_dynamic_list_filter form
+{
+    position : fixed;
+    top      : 15px;
+    left     : 15px;
+    width    : 100%;
+    z-index  : 1;
+}
