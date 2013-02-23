@@ -60,40 +60,6 @@ public class Databaseconnector {
 
 			return answer;
 	}
-	/**
-	 * 
-	 * @param request SQL Request
-	 * @return int status code -500 connection error -200request error
-	 */
-	//database request with int return for checking success
-	public static int databaseinsert(String request) {
-		int r=0;
-		Connection con = null;
-		
-			try 
-			{
-				con = DriverManager.getConnection("jdbc:mysql://localhost:3306/database", "root","Lindenhof52");
-				Statement stmt = con.createStatement();
-				
-				
-				try{
-					stmt.executeUpdate(request);
-				}catch(SQLException e){
-					r= -200;
-				}
-				stmt.close();    				
-			}catch(SQLException e)
-			{
-				e.printStackTrace();
-				r=-500;
-			}
-			finally
-			{
-				if(con != null)
-					try {con.close();} catch (SQLException e){ e.printStackTrace();}
-			}
 
-			return r;
-	}
-	
+
 }
