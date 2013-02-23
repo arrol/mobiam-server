@@ -2,6 +2,10 @@ package webService;
 
 import database.Databaseconnector;
 //class generates data for json response list
+/**
+ * 
+ * @author j-lorra
+ */
 public class Employee {
 	
 
@@ -9,7 +13,12 @@ public class Employee {
     public String name="";
     public boolean attendance=false;
     public String cause="";
-
+    /**
+     * 
+     * @param userid
+     * @param causeallowed
+     * @return Data Transfer Object User
+     */
     Employee(String userid,String causeallowed){
     	
     	//select user information by id

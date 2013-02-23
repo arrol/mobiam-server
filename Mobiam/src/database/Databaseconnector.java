@@ -5,9 +5,19 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
+/**
+ * 
+ * @author j-lorra
+ *
+ */
 public class Databaseconnector {
 	//database request with String return for reading data
+	/**
+	 * 
+	 * @param request -SQL request-
+	 * @param answers -Number of data per dataset-
+	 * @return String -Database response data separated with ',' and dataset with ';'-
+	 */
 	public static String databaserequest(String request,int answers) {
 			
 			Connection con = null;
@@ -17,17 +27,25 @@ public class Databaseconnector {
     			{
     				con = DriverManager.getConnection("jdbc:mysql://localhost:3306/database", "root","Lindenhof52");
     				Statement stmt = con.createStatement();
-    				ResultSet rs = stmt.executeQuery(request);
-    				while(rs.next()){
-    					int i=1;
-    					while(i<=answers){
-    						answer+= rs.getString(i++)+",";
-    					}
-    					answer+=";";
+    				try{
+    					ResultSet rs = stmt.executeQuery(request);
+    					while(rs.next()){
+        					int i=1;
+        					while(i<=answers){
+        						answer+= rs.getString(i++)+",";
+        					}
+        					answer+=";";
+        				}
+    					stmt.close();
+        				rs.close();  
+    				}catch(SQLException e){
+    					e.printStackTrace();
+        				answer ="fehler bei der abfrage";
+    					
     				}
     				
-    				stmt.close();
-    				rs.close();    				
+    				
+    				  				
     			}catch(SQLException e)
     			{
     				e.printStackTrace();
@@ -42,6 +60,11 @@ public class Databaseconnector {
 
 			return answer;
 	}
+	/**
+	 * 
+	 * @param request SQL Request
+	 * @return int status code -500 connection error -200request error
+	 */
 	//database request with int return for checking success
 	public static int databaseinsert(String request) {
 		int r=0;

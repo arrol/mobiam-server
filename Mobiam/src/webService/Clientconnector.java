@@ -1,6 +1,8 @@
 package webService;
 
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,6 +12,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.xml.ws.soap.Addressing;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -18,30 +21,48 @@ import database.Databaseconnector;
 
 
 @Path("/WebService")
+/**
+ * @author julian lorra
+ *
+ */
 public class Clientconnector {
-	//TO
+	//
 	int example_sessiontime = 120;
 	String adminuser="root";
 	String adminpwd="mobiamadmin";
-	//generating a session id
-	private String generatesessionID(){
+
+	//create a unique session ID
+	/**
+	 * @return String Unique SessionID
+	 */
+	private String uniqesessionID(){
 		String sessionID="";
 		Random rand = new Random();
 		for(int i=0; i<30; i++){
 			sessionID+=rand.nextInt(9);
 		}
-		return sessionID;
-	}
-	//check if session id is unique
-	private String uniqesessionID(){
-		String sessionID="";
-		sessionID= generatesessionID();
 		String db = Databaseconnector.databaserequest("select sessionid from database.sessions where sessionid like '"+sessionID+"'",1);
 		if (db!="")sessionID=uniqesessionID();
 		return sessionID;
 	}
-
+	private boolean verifysessionid(String sessionID){
+		boolean sessionok = false;
+		String db = Databaseconnector.databaserequest("Select userid from database.sessions where sessionID like '"+sessionID+"'",1);
+		String[] databaseanswer = db.split(",");
+		if(sessionID!=null&&sessionID.equals(databaseanswer[0])){
+			sessionok = true;
+		}
+		return sessionok;
+	}
 	//login method
+	/**
+	 * 
+	 * @param tenant
+	 * @param office
+	 * @param empid
+	 * @param pass
+	 * @return JSON answer for website
+	 */
 	@POST
 	@Path("/login")
 	@Produces("application/json")
@@ -98,6 +119,11 @@ public class Clientconnector {
 		return feeds;
 	}
 	
+	/**
+	 * 
+	 * @param sessionID
+	 * @return JSON answer for website 
+	 */
 	//TODO:logout check logout succes in db
 	@POST
 	@Path("/logout")
@@ -106,12 +132,11 @@ public class Clientconnector {
 	{
 		JsonObject jo= new JsonObject();
 		String feeds  = null;
-		String db = Databaseconnector.databaserequest("Select userid name from database.sessions where sessionID like '"+sessionID+"'",1);
-		String[] databaseanswer = db.split(",");
-		if(sessionID!=null&&databaseanswer[0]!=null){
+		
+		if(verifysessionid(sessionID)){
 			Databaseconnector.databaseinsert("delete from database.sessions where sessionid like '"+sessionID+"'");
 			jo.addProperty("type", "success");
-			jo.addProperty("sessionID", databaseanswer[0]);
+			jo.addProperty("sessionID", sessionID);
 		}else{
 			jo.addProperty("type", "error");
 			jo.addProperty("message", "Bad session!");
@@ -131,12 +156,10 @@ public class Clientconnector {
 	{
 		JsonObject jo= new JsonObject();
 		String feeds  = null;
-		String db = Databaseconnector.databaserequest("Select userid name from database.sessions where sessionID like '"+sessionID+"'",1);
-		String[] databaseanswer = db.split(",");
-		if(sessionID!=null&&databaseanswer[0]!=null)
+		if(verifysessionid(sessionID))
 		{
 			jo.addProperty("type", "success");
-			jo.addProperty("sessionID", databaseanswer[0]);
+			jo.addProperty("sessionID", sessionID);
 			jo.addProperty("timeLeft", example_sessiontime);
 			
 		}else{
@@ -149,6 +172,11 @@ public class Clientconnector {
 	}
 	
 	//TODO: list rewrite for db
+	/**
+	 * 
+	 * @param sessionID
+	 * @return JSON answer for website
+	 */
 	@POST
 	@Path("/list")
 	@Produces("application/json")
@@ -189,6 +217,11 @@ public class Clientconnector {
 	}
 	
 	//TODO: define identifyme D
+	/**
+	 * 
+	 * @param sessionID
+	 * @return JSON answer for website
+	 */
 	@POST
 	@Path("/identifyMe")
 	@Produces("application/json")
@@ -218,6 +251,19 @@ public class Clientconnector {
 	}
 	
 	//TODO: define adduser D
+	/**
+	 * 
+	 * @param tenant
+	 * @param office
+	 * @param empid
+	 * @param pass
+	 * @param name
+	 * @param attendance
+	 * @param cause
+	 * @param user
+	 * @param pwd
+	 * @return JSON answer for website
+	 */
 		@POST
 		@Path("/adduser")
 		@Produces("application/json")
@@ -233,9 +279,22 @@ public class Clientconnector {
 		{
 			JsonObject jo= new JsonObject();
 			String feeds  = null;
+
 			if(user.equals(adminuser)&&pwd.equals(adminpwd)){ 
 				if(tenant!=null&&office!=null&&empid!=null&&pass!=null&&name!=null&&(attendance.equals("0")||attendance.equals("1")))
 				{
+					try {
+						MessageDigest md = MessageDigest.getInstance("SHA-256");
+						md.update(pass.getBytes());
+						int i =0;
+						byte sha[] = md.digest();
+						pass="";
+						while( sha.length>i)
+						pass+=(char)sha[i++];
+					} catch (NoSuchAlgorithmException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					Databaseconnector.databaseinsert("INSERT INTO database.users (tenant,office,empid,pass,username,attendance,cause) VALUES ('"+tenant+"', '"+office+"','"+empid+"','"+pass+"','"+name+"',"+attendance+",'"+cause+"')");
 					jo.addProperty("type", "success");
 					
@@ -253,6 +312,15 @@ public class Clientconnector {
 			return feeds;
 		}
 		//TODO: define adduser D
+		/**
+		 * 
+		 * @param readinguser
+		 * @param listetuser
+		 * @param causesallowed
+		 * @param user
+		 * @param pwd
+		 * @return JSON answer for website
+		 */
 		@POST
 		@Path("/addgroup")
 		@Produces("application/json")
