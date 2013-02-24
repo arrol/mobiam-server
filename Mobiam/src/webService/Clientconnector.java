@@ -28,6 +28,19 @@ public class Clientconnector {
 	//
 	int example_sessiontime = 120;
 
+	@POST
+	@Path("/test")
+	@Produces("application/json")
+	public String test(@FormParam("sessionID") String sessionID)
+	{
+		JsonObject jo= new JsonObject();
+		String feeds  = null;
+		String db = Databaseconnector.databaserequest("Select pass, idusers from database.users ",2);
+		jo.addProperty("answer", db);
+		
+		feeds = jo.toString();
+		return feeds;
+	}
 	//login method
 	/**
 	 * 
@@ -82,12 +95,12 @@ public class Clientconnector {
 						jo.addProperty("timeLeft", example_sessiontime);	
 					}
 					else{
-						ErrorTypeManager.seterror110(jo);
+						jo = ErrorTypeManager.seterror110();
 					}
 				}
 					
 		} catch (Exception e) {
-			ErrorTypeManager.seterror114(jo);
+			jo = ErrorTypeManager.seterror114();
 
 		}
 
@@ -114,11 +127,11 @@ public class Clientconnector {
 				jo.addProperty("type", "success");
 				jo.addProperty("sessionID", sessionID);
 			}else{
-				ErrorTypeManager.seterror102(jo);
+				jo = ErrorTypeManager.seterror102();
 				
 			}
 		} catch (Exception e) {
-			ErrorTypeManager.seterror114(jo);
+			jo = ErrorTypeManager.seterror114();
 		}
 		
 		
@@ -146,10 +159,10 @@ public class Clientconnector {
 				jo.addProperty("timeLeft", example_sessiontime);
 				
 			}else{
-				ErrorTypeManager.seterror102(jo);
+				jo = ErrorTypeManager.seterror102();
 			}
 		} catch (Exception e) {
-			ErrorTypeManager.seterror114(jo);
+			jo = ErrorTypeManager.seterror114();
 		}
 		
 		feeds = jo.toString();
@@ -189,10 +202,10 @@ public class Clientconnector {
 				jo.add("data", gson.toJsonTree(list, ArrayList.class));
 				
 			}else{
-				ErrorTypeManager.seterror102(jo);
+				jo = ErrorTypeManager.seterror102();
 			}
 		} catch (Exception e) {
-			ErrorTypeManager.seterror114(jo);
+			jo = ErrorTypeManager.seterror114();
 		}
 
 		
@@ -226,10 +239,10 @@ public class Clientconnector {
 				jo.addProperty("empid", databaseanswer2[3]);
 			}else
 			{
-				ErrorTypeManager.seterror102(jo);
+				jo = ErrorTypeManager.seterror102();
 			}
 		} catch (Exception e) {
-			ErrorTypeManager.seterror114(jo);
+			jo = ErrorTypeManager.seterror114();
 		}
 
 		feeds = jo.toString();

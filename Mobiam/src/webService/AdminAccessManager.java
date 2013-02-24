@@ -73,13 +73,13 @@ public class AdminAccessManager {
 						jo.addProperty("pass",pass );
 						
 					}else{
-						ErrorTypeManager.seterror100(jo);
+						jo = ErrorTypeManager.seterror100();
 					}
 				}else{
-					ErrorTypeManager.seterror111(jo);
+					jo = ErrorTypeManager.seterror111();
 				}
 			} catch (Exception e) {
-				ErrorTypeManager.seterror114(jo);
+				jo = ErrorTypeManager.seterror114();
 			}
 
 
@@ -115,13 +115,13 @@ public class AdminAccessManager {
 						jo.addProperty("type", "success");
 						
 					}else{
-						ErrorTypeManager.seterror100(jo);
+						jo = ErrorTypeManager.seterror100();
 					}
 				}else{
-					ErrorTypeManager.seterror111(jo);
+					jo = ErrorTypeManager.seterror111();
 				}
 			} catch (Exception e) {
-				ErrorTypeManager.seterror114(jo);
+				jo = ErrorTypeManager.seterror114();
 			}
 
 			feeds = jo.toString();

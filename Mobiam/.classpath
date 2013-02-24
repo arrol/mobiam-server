@@ -9,5 +9,9 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="lib" path="src/database/mysql-connector-java-5.1.0-bin.jar"/>
+	<classpathentry kind="lib" path="src/database/spring-jdbc-3.2.1.RELEASE-sources.jar"/>
+	<classpathentry kind="lib" path="src/database/spring-jdbc-3.2.1.RELEASE-javadoc.jar"/>
+	<classpathentry kind="lib" path="src/database/spring-beans-3.2.1.RELEASE.jar"/>
+	<classpathentry kind="lib" path="src/database/spring-core-3.2.1.RELEASE.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
