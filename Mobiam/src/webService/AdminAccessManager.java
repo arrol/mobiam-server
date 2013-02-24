@@ -68,7 +68,7 @@ public class AdminAccessManager {
 						} catch (NoSuchAlgorithmException e) {
 							e.printStackTrace();
 						}
-						Databaseconnector.databaserequest("INSERT INTO database.users (tenant,office,empid,pass,username,attendance,cause) VALUES ('"+tenant+"', '"+office+"','"+empid+"','"+pass+"','"+name+"',"+attendance+",'"+cause+"')",1);
+						Databaseconnector.databaseinsert("INSERT INTO database.users (tenant,office,empid,pass,username,attendance,cause) VALUES ('"+tenant+"', '"+office+"','"+empid+"','"+pass+"','"+name+"',"+attendance+",'"+cause+"')");
 						jo.addProperty("type", "success");
 						jo.addProperty("pass",pass );
 						
@@ -111,7 +111,7 @@ public class AdminAccessManager {
 				if(user.equals(adminuser)&&pwd.equals(adminpwd)){ 
 					if(readinguser!=null&&listetuser!=null&&causesallowed!=null)
 					{
-						Databaseconnector.databaserequest("INSERT INTO `database`.`groups` (`readinguser`, `listetuser`, `causesallowed`) VALUES ('"+readinguser+"', '"+listetuser+"', '"+causesallowed+"')",1);
+						Databaseconnector.databaseinsert("INSERT INTO `database`.`groups` (`readinguser`, `listetuser`, `causesallowed`) VALUES ('"+readinguser+"', '"+listetuser+"', '"+causesallowed+"')");
 						jo.addProperty("type", "success");
 						
 					}else{

@@ -1,389 +1,32 @@
 <!DOCTYPE html> 
 <html> 
   <head> 
-  <title>MOBIAM 0.0.3</title> 
-  <!--<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a1/jquery.mobile-1.0a1.min.css" />
-  <script src="http://code.jquery.com/jquery-1.4.3.min.js"></script>
-  <script src="http://code.jquery.com/mobile/1.0a1/jquery.mobile-1.0a1.min.js"></script>-->
+  <title>MOBIAM 0.1</title> 
   <link rel="stylesheet" type="text/css" media="screen" href="./lib/jquery.mobile.css" />
   <link rel="stylesheet" type="text/css" media="screen" href="./MOBIAM-Style.css" />
-  <meta name="viewport" content="height=device-height,width=device-width,initial-scale=1.0,maximum-scale=1.0" >
+  <meta name="viewport" content="height=device-height,width=device-width,initial-scale=1.0,maximum-scale=1.0">
+  
+  <!-- Skripte -->
   <script src="./lib/jquery.js"></script>
   <script src="./lib/jquery.mobile.js"></script>
-  <script src="./MOBIAM-Protocol-0-0-3.js"></script>
-  <script src="./MOBIAM-Utility.js"></script>
+  <script src="./MOBIAM-Script.js"></script>
   
   <script>
-	//GFOS Innovationsaward 2013
-	//       MOBIAM 0.0.3
+  	//-----------------------------
+	//  GFOS Innovationsaward 2013
+	//         MOBIAM 0.1
 	//(C) Niklas Weissner 2012/2013
-	//	  Julian Lorra 2012/2013
-	//	  Dennis Szczesny 2012/2013
 	//-----------------------------
-  
-	//Konstanten
-	var CLIENT_PROTOCOL_VERSION = "0.0.3";
 	
-	//GUI-Konstanten
-	//Vorläufige Beispielicon von iconarchive.com
-	var UI_ICON_ATTENDANT_TRUE = "./img/status-2.png";
-	var UI_ICON_ATTENDANT_FALSE = "./img/status-0.png";
-	
-	var timeLeft = 0; //Überige Zeit bis zum automatischen Logout
-	var logoutTimer; //ID des Logout-Timers
-	var currentSession; //Aktuelle Sitzung
-	var attendanceData; //Aktuelle Anwesenheitsdatan (Objektarray)
-	var loginData; //Aktuelle Logindaten
-	
-	//Ausführung starten wenn Dokument vollständig geladen ist
-	$(document).ready(
-	function()
+	if(CLIENT_VERSION == "undefined" || CLIENT_VERSION == null)
 	{
-		//Event bei klicken auf den Login-Button
-		//Deaktiviert wegen umschreibung auf form-Tag
-		/*$(".loginBtt").click(
-		function()
-		{ 
-			doLogin();
-		});*/
-		
-		//Event bei klicken auf einen von den Logout-Buttons
-		$(".logoutBtt").click(
-		function()
-		{
-			doLogout();
-		});
-		
-		//Überprüfe auf noch gültigen Login
-		var sessionCookie = getCookie(SESSION_COOKIE_ID);
-		if(sessionCookie != null)
-		{
-			//Versuchen, Sitzung wiederherzustellen
-			refreshSession(sessionCookie);
-		}else
-		{
-			//Keine Sitzungswiederherstellung
-			showLoginForm();
-		}
-		
-		$(window).bind('scroll', function()
-		{
-		    if(!isScrolledIntoView("#dynamicFilterMarker"))
-		    {
-		    	$("#dynamicFilter").attr("class","MOBIAM_dynamic_list_filter");
-		    }else
-		    {
-		    	$("#dynamicFilter").attr("class","");	
-		    }
-		});
-	});
-	
-	function isScrolledIntoView(elem)
-	{
-	    var docViewTop = $(window).scrollTop();
-	    var docViewBottom = docViewTop + $(window).height();
-
-	    var elemTop = $(elem).offset().top;
-	    var elemBottom = elemTop + $(elem).height();
-
-	    return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+		alert("Das MOBIAM-Systemskript wurde nicht gefunden.\nDie Anwendung kann nicht ordnungsgemäß ausgeführt werden.");	
 	}
-	
-	//Schließt Hinweis auf der Loginseite
-	function hideLoginNotification()
-	{
-		//$("#loginNotifyLabelBox").hide();
-		//$("#loginNotifyLabel").html("");
-	}
-	
-	//Zeigt Hinweis auf der Loginseite mit Hinweistext an
-	function showLoginNotification(text)
-	{
-		//$("#loginNotifyLabelBox").show();
-		//$("#loginNotifyLabel").html(text);
-	}
-	
-	//Versucht eine Sitzung zu erneuern. Wenn Service erfolg meldet, wird die neue Lebenszeit übernommen
-	//und die Sitzungsnummer auf das Echo-Feld gesetzt(für den Fall einer Änderung der ID)
-	function refreshSession(id)
-	{
-		/*Simulation hinfällig
-		//Simulation eines keep-Alive-Aufrufes mit SessionID id
-		var recvMsg = {};
-			recvMsg.type = "success";
-			recvMsg.sessionID = id;//EDIT: Echo der Session ist pflicht
-			recvMsg.timeLeft = 60;*/
-		var params = 
-		{
-			sessionID: id
-		};
-		
-		callService("keepalive",params,
-		function(recvMsg)
-		{		
-			if(recvMsg.type == MSG_TYPE_SUCCESS)
-			{
-				timeLeft = recvMsg.timeLeft;
-				currentSession = recvMsg.sessionID;
-				setCookie(SESSION_COOKIE_ID,recvMsg.sessionID,timeLeft);
-				showDataView();
-			}else if(recvMsg.type == MSG_TYPE_ERROR)
-			{
-				if(recvMsg.errorId == ERROR_INVALID_SESSION)
-				{
-					showLoginForm();
-				}
-			}
-		});
-	}
-	
-	function refreshUserIdent()
-	{
-		var params = 
-		{
-			sessionID: currentSession	
-		};
-		callService("identifyMe",params,
-		function(data)
-		{
-			if(data.type == MSG_TYPE_SUCCESS)
-			{
-				//Provisorisch, später aufteilen
-				$("#welcomeMessage").html("<h1>Willkommen, " + data.name + "</h1>" +
-						"<p>Sie sind angemeldet im Werk " + data.office + "</p>");
-			}
-		});
-	}
-	
-	//Ruft den Datenservice auf und lädt Liste mit neuen Anwesenheitsdaten
-	function refreshDataList()
-	{
-		var params = 
-		{
-			sessionID: currentSession,
-			filter: ""
-		};
-		callService("list",params,
-		function(data)
-		{
-			if(data.type == MSG_TYPE_SUCCESS)
-			{
-				attendanceData = data.data;
-				loadDataList(data.data);
-			}
-		});
-	}
-	
-	//Entleert die Anwesenheitsliste und führt einen refresh durch
-	function clearDataList()
-	{
-		var listView = $("#dataList");
-		listView.html("");
-		listView.listview("refresh");
-	}
-	
-	//Erneuert die Anwesenheitsliste mit den Anwesenheitsdaten im Array data (Datem müssen Protokollkonform sein)
-	function loadDataList(data)
-	{
-		//Einträge in der Datenliste sortieren, damit Einträge und Trenner korrekt eingefügt werden
-		var compareNameObject = 
-			function(a,b) 
-			{
-				if (a.name < b.name)
-					return -1;
-				if (a.name > b.name)
-					return 1;
-				return 0;
-			};	
-		data.sort(compareNameObject);
-		
-		var newListHtml = "";
-		var listView = $("#dataList");
-		listView.html("");
-		
-		for(var i = 0; i<data.length;i++)
-		{
-			var pers = data[i];
-			
-			//HTML-Elemente der Einträge generieren
-			newListHtml += "<li data-filtertext='" + pers.name + "'>";
-			newListHtml += "<h3>" + pers.name + "</h3>";
-			if(!pers.attendance && pers.cause != null)
-				newListHtml += "<p>" + pers.cause + "</p>";
-			newListHtml += "<p class='ui-li-aside'><img width=32 height=32 src='" +
-				(pers.attendance ? UI_ICON_ATTENDANT_TRUE : UI_ICON_ATTENDANT_FALSE) + "' alt='" + 
-				(pers.attendance ? "Anwesend" : "Nicht anwesend") + "'></img></p>";
-			newListHtml += "</li>";
-		}
-		listView.html(newListHtml);
-		listView.listview("refresh");
-	}
-	
-	function doLogin()
-	{
-		//alert("Let's act like you have just been logged in");
-		//alert("Here, have a cookie.");
-		
-		//Simulation einer empfangenen Nachricht (login-Service)
-		//Simulation hinfällig
-		/*var recvMsg = {};
-			recvMsg.type = "success";
-			recvMsg.sessionID = "CAFEBABE";
-			recvMsg.timeLeft = 60;*/
-		var v_tenant = $("#tenant_input").val();
-		var v_office = $("#office_input").val();
-		var v_empid = $("#empid_input").val();
-		var v_pass = $("#pass_input").val(); //Hier später Passwort-Hash generieren
-		
-		$("#pass_input").val("");//Passwortfeld zu Sicherheitszwecken leeren
-		
-		var loginData = 
-			{
-				tenant: v_tenant,
-				office: v_office,
-				empid: v_empid,
-				pass: v_pass
-			};
-		
-		callService("login",loginData,function(recvMsg)
-		{
-			if(recvMsg.type == MSG_TYPE_SUCCESS)
-			{
-				//Logingerfolg -> Sitzungsnummer übernehmen, Logouttimer setzen und
-				//zur Datenansicht wechseln
-				timeLeft = recvMsg.timeLeft;
-				currentSession = recvMsg.sessionID;
-				setCookie(SESSION_COOKIE_ID,recvMsg.sessionID,timeLeft);
-				showDataView();
-				$("#tenant_statuslabel").html("");
-				$("#office_statuslabel").html("");
-				$("#empid_statuslabel").html("");
-				$("#pass_statuslabel").html("");
-			}else if(recvMsg.type == MSG_TYPE_ERROR)
-			{
-				//Loginfehler
-				if(recvMsg.errorID == ERROR_MISSING_FIELDS)
-				{
-					//Service meldet dass benötigte Felder leer gelassen wurden
-					$("#tenant_statuslabel").html("");
-					$("#office_statuslabel").html("");
-					$("#empid_statuslabel").html("");
-					$("#pass_statuslabel").html("");
-					//Entsrepechend der Anforderungen des Services Hinweise setzen
-					for(var i = 0; i<recvMsg.missingData.length;i++)
-						$("#" + recvMsg.missingData[i] + "_statuslabel").html("<font color='#9E2020'>Dieses Feld muss ausgef&uuml;llt werden!</font>");
-				}else if(recvMsg.errorID == ERROR_BAD_LOGIN_DATA)
-				{
-					//Service meldet ungültige Logindaten
-					$("#tenant_statuslabel").html("");
-					$("#office_statuslabel").html("");
-					$("#empid_statuslabel").html("");
-					$("#pass_statuslabel").html("<font color='#9E2020'>Fehlerhafte Logindaten!</font>");
-				}
-			}
-		});
-	}
-	
-	//Startet einen Logoutvorgang und führt entsprechend der Antwort des Services eine Aktion aus
-	function doLogout()
-	{
-		//alert("There's still no server, so I'm kicking you out without logoff.");
-		//alert("Oh, and give me that cookie back!!!");
-		var params = 
-		{
-			sessionID: currentSession
-		};
-		
-		callService("logout",params,
-		function(recvMsg)
-		{
-			if(recvMsg.type == MSG_TYPE_ERROR && recvMsg.errorID == ERROR_COULD_NOT_LOGOUT)
-			{
-				//Alle Fehlermeldungen bis auf explizite Logoutfehler des Services werden ignoriert.
-				//Eine ungültige SessionID muss nicht als grund gesehen werden, die lokale Sitzung beizubehalten, da
-				//der Service die Sitzung sowieso als ungültig ansieht und so kann der Client ohne das OK des Services
-				//die Sitzung beenden
-				alert("Technischer Fehler: Logout fehlgeschlagen.\nVersuchen sie es später erneut und/oder kontaktieren\nsie ihren Systemadmin.");
-				return;
-			}
-			//Kein expliziter Logoutfehler -> Logout kann lokal durchgeführt werden
-			clearDataList();
-			setCookie(SESSION_COOKIE_ID,currentSession,0);
-			showLoginForm();
-		});
-	}
-	
-	//Startet den Timer des lokalen automatischen Logouts
-	function startLogoutTimer()
-	{
-		logoutTimer = setInterval(function(){refreshLogoutTimer()},1000);
-	}
-	
-	//Stoppt den Timer des lokalen automatischen Logouts
-	function stopLogoutTimer()
-	{
-		clearInterval(logoutTimer);
-	}
-	
-	//Tick-Funktion des Logout-Timers
-	function refreshLogoutTimer()
-	{
-		if(timeLeft-- <= 0)
-		{
-			//Lokalen Auto-Logout starten wenn Timer abgelaufen ist
-			//alert("You are now logged out automatically...");
-			doLogout();
-			showLoginNotification("Sie wurden automatisch ausgeloggt");
-			return;
-		}
-		
-		//Anzeige für verbleibende Zeit aktualisieren
-		var seconds = timeLeft%60;
-		var minutes = Math.floor(timeLeft/60);
-		$("#autoLogoutLabel").html("Automatischer Logout in " + minutes + ":" + ((seconds > 9) ? "" : "0") + seconds);
-	}
-	
-	//Zeigt das Login-Formular an
-	function showLoginForm()
-	{
-		hideLoginNotification();
-		stopLogoutTimer();
-		showSubcontent("loginForm");
-	}
-	
-	//Zeigt das Datenansichtsformular an
-	function showDataView()
-	{	
-		startLogoutTimer();
-		refreshLogoutTimer();
-		refreshUserIdent();
-		refreshDataList();
-		showSubcontent("dataView");
-	}
-	
-	//Zeigt Header, Footer und Contents der Gruppe name an und blendet alle anderen aus
-	function showSubcontent(name)
-	{
-		hideAllContent();
-		
-		$("#content_"+ name).show();
-		$("#header_" + name).show();
-		$("#footer_" + name).show();
-	}
-	
-	//Blendet alle Header, Footer und Contents aus
-	function hideAllContent()
-	{
-		$("div[data-role='header']").hide();
-		$("div[data-role='content']").hide();
-		$("div[data-role='footer']").hide();
-	}
-	
   </script>
 </head> 
 <body> 
 
-<div data-role="page" data-theme="b" id="home">
+<div data-role="page" data-theme="b" id="home" data-title="MOBIAM 0.1">
 
 	<!-- Loginformular -->
 	<div data-role="header" id="header_loginForm" data-theme="b" data-nobackbtn="true">
@@ -394,7 +37,9 @@
 	
 		<div id="loginNotifyLabel"></div>
 		
+		<!-- Loginmaske -->
 		<form action="javascript:doLogin();">
+		
 			<div data-role="fieldcontain">
 				<label for="tenant_input">Mandant</label>
 				<input type="text"  name="tenant_input" id="tenant_input" value="" /><br>
@@ -411,12 +56,11 @@
 				<label for="pass_input">Passwort</label>
 				<input type="password" autocomplete="off" name="pass_input" id="pass_input"/><br>
 				<div id="pass_statuslabel"></div>
-				
 			</div>
 			
 			<div data-role="controlgroup" data-type="horizontal">
 				<input type="submit" class="loginBtt" data-icon="check" value="Login"/>
-				<input type="button" class="clearForm" data-icon="delete" data-iconpos="right" value="Felder l&ouml;schen"/>
+				<input type="button" class="clearForm" data-icon="delete" data-iconpos="right" value="Felder l&ouml;schen" onClick="javascript:clearLoginForm();"/>
 			</div> 
 			
 		</form>
@@ -429,9 +73,18 @@
 		<h1>MOBIAM</h1>
 	</div> 
 	
-	<div data-role="content" id="content_dataView" data-theme="b" data-iscroll="enabled">  
+	<div data-role="content" id="content_dataView" data-theme="b">  
 			<div id="welcomeMessage"></div>
 			<br>
+			
+			<div data-role="collapsible-set" data-theme="c" data-content-theme="d">
+				<div data-role="collapsible">
+        			<h3>Filtereinstellungen</h3>
+        			Kommt noch
+    			</div>
+			</div>
+			
+			<!-- Hilfskonstrukt für dynamische Suchleiste -->
 			<div id="dynamicFilterMarker"></div>
 			<div id="dynamicFilter">
 				<ul data-role="listview" data-icon="search" id="dataList" data-filter="true" data-autodividers="true" data-filter-placeholder="Suche Person..." data-filter-theme="d" data-theme="d" data-divider-theme="d">
@@ -440,23 +93,27 @@
 			</div>
 	</div>
 	
-	<div data-role="footer" data-theme="b" id="footer_dataView" data-position="fixed" class="ui-bar">
-		<div align="right" id="autoLogoutLabel">
-			<!-- Label für Logouttimer (wird vom Skript gefüllt) -->
-		</div>
-		<a data-role="button" class="ui-btn-left" data-icon="delete" data-mini="true" href="javascript:doLogout();">Logout</a>
+	<div data-role="footer" data-theme="b" id="footer_dataView" data-position="fixed">
+		<a data-icon="delete" href="javascript:doLogout();">Logout</a>
 	</div>
 	
 	<!-- Fehlerseite -->
 	<div data-role="header" id="header_errorPage" data-theme="b" data-nobackbtn="true">
-		<h1>MOBIAM</h1>
+		<h1>MOBIAM-Fataler Fehler</h1>
 	</div> 
 	
 	<div data-role="content" id="content_errorPage" data-theme="b">  
-			<h1>Fehler!</h1><br>
-			<p id="errorInfoLabel">
-				<!-- Fehlerinformationen (werden vom Skript eingefügt) -->
-			</p>
+			<div class="ui-grid-a">
+				<div class="ui-block-a">
+					<h1>Fehler!</h1><br>
+					<p id="errorInfoLabel">
+						<!-- Fehlerinformationen (werden vom Skript eingefügt) -->
+					</p>
+				</div>
+				<div class="ui-block-b">
+					<img align="right" src="./img/error.png" width=256 height=256 alt=""></img>
+				</div>
+			</div>
 	</div>
 	
 	<div data-role="footer" data-theme="b" id="footer_errorPage">

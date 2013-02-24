@@ -1,17 +1,15 @@
 package database;
 
-import java.sql.DriverManager;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.xml.XmlBeanFactory;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+
+import com.mysql.jdbc.PreparedStatement;
 /**
  * 
  * @author j-lorra
@@ -29,13 +27,12 @@ public class Databaseconnector {
 			
 			Connection con = null;
     		String answer ="";
-    		DataSource datasource;
     		
     			try 
     			{
     				InitialContext ctx = new InitialContext();
     			
-					DataSource ds = (DataSource) ctx.lookup("jdbc/mysql");
+					DataSource ds = (DataSource) ctx.lookup("java:app/jdbc/Mobiam_pool");
 					con = ds.getConnection();
     				Statement stmt = con.createStatement();
     				try{
@@ -63,7 +60,6 @@ public class Databaseconnector {
     				answer ="fehler mit Db verbindung";
     				
     			} catch (NamingException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 					answer = "couldnt load datapool from server";
 				}
@@ -75,6 +71,48 @@ public class Databaseconnector {
 
 			return answer;
 	}
+	public static String databaseinsert(String request) {
+		
+		Connection con = null;
+		String answer ="";
+		
+			try 
+			{
+				InitialContext ctx = new InitialContext();
+			
+				DataSource ds = (DataSource) ctx.lookup("java:app/jdbc/Mobiam_pool");
+				con = ds.getConnection();
+				java.sql.PreparedStatement stmt = con.prepareStatement(request);
+				stmt.execute();
+				try{
+					
+					
+					stmt.close();  
+				}catch(SQLException  e){
+					e.printStackTrace();
+    				answer ="fehler bei der abfrage";
+					
+				}
+				
+				
+				  				
+			}catch(SQLException e)
+			{
+				e.printStackTrace();
+				answer ="fehler mit Db verbindung";
+				
+			} catch (NamingException e1) {
+				e1.printStackTrace();
+				answer = "couldnt load datapool from server";
+			}
+			finally
+			{
+				if(con != null)
+					try {con.close();} catch (SQLException e){ e.printStackTrace();}
+			}
+
+		return answer;
+}
 
 
 }

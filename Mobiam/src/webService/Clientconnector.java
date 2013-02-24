@@ -35,7 +35,7 @@ public class Clientconnector {
 	{
 		JsonObject jo= new JsonObject();
 		String feeds  = null;
-		String db = Databaseconnector.databaserequest("Select pass, idusers from database.users ",2);
+		String db = Databaseconnector.databaseinsert("INSERT INTO database.sessions (userid,sessionid) VALUES ('00000000009', 'baumsession')");
 		jo.addProperty("answer", db);
 		
 		feeds = jo.toString();
@@ -89,7 +89,7 @@ public class Clientconnector {
 						String SessionID = SessionManager.uniqesessionID();
 						
 						jo.addProperty("type", "success");
-						Databaseconnector.databaserequest("INSERT INTO database.sessions (userid,sessionid) VALUES ('"+databaseanswer[1]+"', '"+SessionID+"')",1);
+						Databaseconnector.databaseinsert("INSERT INTO database.sessions (userid,sessionid) VALUES ('"+databaseanswer[1]+"', '"+SessionID+"')");
 						jo.addProperty("sessionID",SessionID);
 						jo.addProperty("userID",databaseanswer[1]);
 						jo.addProperty("timeLeft", example_sessiontime);	
@@ -123,7 +123,7 @@ public class Clientconnector {
 		String feeds  = null;
 		try {
 			if(SessionManager.verifysessionid(sessionID)[0].equals("1")){
-				Databaseconnector.databaserequest("delete from database.sessions where sessionid like '"+sessionID+"'",1);
+				Databaseconnector.databaseinsert("delete from database.sessions where sessionid like '"+sessionID+"'");
 				jo.addProperty("type", "success");
 				jo.addProperty("sessionID", sessionID);
 			}else{
