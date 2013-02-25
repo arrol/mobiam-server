@@ -4,12 +4,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
+import java.sql.PreparedStatement;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-
-import com.mysql.jdbc.PreparedStatement;
 /**
  * 
  * @author j-lorra
@@ -82,7 +80,7 @@ public class Databaseconnector {
 			
 				DataSource ds = (DataSource) ctx.lookup("java:app/jdbc/Mobiam_pool");
 				con = ds.getConnection();
-				java.sql.PreparedStatement stmt = con.prepareStatement(request);
+				PreparedStatement stmt = con.prepareStatement(request);
 				stmt.execute();
 				try{
 					

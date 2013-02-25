@@ -19,8 +19,8 @@ import database.Databaseconnector;
  *
  */
 public class AdminAccessManager {
-	String adminuser="root";
-	String adminpwd="mobiamadmin";
+	private String adminuser="root";
+	private String adminpwd="mobiamadmin";
 
 	/**
 	 * 
@@ -48,13 +48,16 @@ public class AdminAccessManager {
 				@FormParam("user")String user,
 				@FormParam("pwd")String pwd)
 		{
+			
 			JsonObject jo= new JsonObject();
 			String feeds  = null;
 			try {
 				if(user.equals(adminuser)&&pwd.equals(adminpwd)){ 
 					if(tenant!=null&&office!=null&&empid!=null&&pass!=null&&name!=null&&(attendance.equals("0")||attendance.equals("1")))
 					{
-						try {
+						/*
+						 * generate sha-256 hex hash from pass
+						 * try {
 							MessageDigest md = MessageDigest.getInstance("SHA-256");
 							md.update(pass.getBytes());
 							int i =0;
@@ -67,7 +70,7 @@ public class AdminAccessManager {
 					    	pass = hexString.toString();
 						} catch (NoSuchAlgorithmException e) {
 							e.printStackTrace();
-						}
+						}*/
 						Databaseconnector.databaseinsert("INSERT INTO database.users (tenant,office,empid,pass,username,attendance,cause) VALUES ('"+tenant+"', '"+office+"','"+empid+"','"+pass+"','"+name+"',"+attendance+",'"+cause+"')");
 						jo.addProperty("type", "success");
 						jo.addProperty("pass",pass );
