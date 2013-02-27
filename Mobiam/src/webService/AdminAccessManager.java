@@ -55,9 +55,11 @@ public class AdminAccessManager {
 						
 						
 					    	pass = Sha256Factory.StringTosha256Hex(pass);
-						
-						DatabaseConnectionManager.databaseinsert("INSERT INTO database.users (tenant,office,empid,pass,username,attendance,cause) VALUES ('"+tenant+"', '"+office+"','"+empid+"','"+pass+"','"+name+"',"+attendance+",'"+cause+"')");
+						String ans="";
+						ans=DatabaseConnectionManager.databaseinsert("INSERT INTO users (tenant,office,empid,pass,username,attendance,cause) VALUES ('"+tenant+"', '"+office+"','"+empid+"','"+pass+"','"+name+"','"+attendance+"','"+cause+"')");
 						jo.addProperty("type", "success");
+						jo.addProperty("paa", pass);
+						if(ans.equals(""))jo.addProperty("ans", ans);
 						
 					}else{
 						jo = ErrorTypeManager.seterror200();
@@ -98,7 +100,7 @@ public class AdminAccessManager {
 				if(user.equals(PropertyManager.getAdminuser())&&pwd.equals(PropertyManager.getAdminpwd())){ 
 					if(readingUser!=null&&listedUser!=null&&causesallowed!=null)
 					{
-						DatabaseConnectionManager.databaseinsert("INSERT INTO `database`.`groups` (`readinguser`, `listetuser`, `causesallowed`) VALUES ('"+readingUser+"', '"+listedUser+"', '"+causesallowed+"')");
+						DatabaseConnectionManager.databaseinsert("INSERT INTO `groups` (`readinguser`, `listetuser`, `causesallowed`) VALUES ('"+readingUser+"', '"+listedUser+"', '"+causesallowed+"')");
 						jo.addProperty("type", "success");
 						
 					}else{
@@ -131,7 +133,7 @@ public class AdminAccessManager {
 			String feeds  = null;
 			try {
 				if(user.equals(PropertyManager.getAdminuser())&&pwd.equals(PropertyManager.getAdminpwd())){ 
-						DatabaseConnectionManager.databaseinsert("CREATE  TABLE `Mobiam`.`users` ("+
+						DatabaseConnectionManager.databaseinsert("CREATE  TABLE `users` ("+
 
   																	"`idusers` INT(11) ZEROFILL UNSIGNED NOT NULL AUTO_INCREMENT ,"+
 
@@ -145,7 +147,7 @@ public class AdminAccessManager {
 
   																	"`username` VARCHAR(45) NOT NULL ,"+
 
-  																	"`attendance` TINYINT NOT NULL ,"+
+  																	"`attendance` VARCHAR(1) NOT NULL ,"+
 
   																	"`cause` VARCHAR(100) NULL ,"+
 
@@ -154,7 +156,7 @@ public class AdminAccessManager {
   																	"UNIQUE INDEX `idusers_UNIQUE` (`idusers` ASC) );"
 
   																	);
-						DatabaseConnectionManager.databaseinsert("CREATE  TABLE `mobiam`.`groups` ("+
+						DatabaseConnectionManager.databaseinsert("CREATE  TABLE `groups` ("+
 
  																" `idgroupbinding` INT UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT ,"+
 
@@ -167,7 +169,7 @@ public class AdminAccessManager {
 	 															" PRIMARY KEY (`idgroupbinding`) );"
 
 																);
-						DatabaseConnectionManager.databaseinsert("CREATE  TABLE `mobiam`.`sessions` ("+
+						DatabaseConnectionManager.databaseinsert("CREATE  TABLE `sessions` ("+
 
 																	" `sessionid` VARCHAR(31) NOT NULL ,"+
 

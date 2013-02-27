@@ -44,7 +44,7 @@ public class Clientconnector {
 		String feeds  = null;
 		try {
 			if(SessionManager.verifysessionid(sessionID)[0].equals("1")){
-				DatabaseConnectionManager.databaseinsert("delete from database.sessions where sessionid like '"+sessionID+"'");
+				DatabaseConnectionManager.databaseinsert("delete from sessions where sessionid like '"+sessionID+"'");
 				jo.addProperty("type", "success");
 				jo.addProperty("sessionID", sessionID);
 			}else{
@@ -103,17 +103,17 @@ public class Clientconnector {
 	{
 		JsonObject jo= new JsonObject();
 		String feeds  = null;
-		try {
+		//try {
 			String session[]= SessionManager.verifysessionid(sessionID);
 			if(session[0].equals("1"))
 			{
 
 			    List<Employee> list= Collections.synchronizedList(new ArrayList<Employee>() );
 	 
-			    String userlist= DatabaseConnectionManager.databaserequest("Select listetuser from database.groups where readinguser like '"+session[1]+"' ",1);
+			    String userlist= DatabaseConnectionManager.databaserequest("Select listetuser from groups where readinguser like '"+session[1]+"' ",1);
 			    String user[] = userlist.split(",;");
 			    for (String userid : user) {
-			    	 String causelist= DatabaseConnectionManager.databaserequest("Select causesallowed from database.groups where readinguser like '"+session[1]+"' and listetuser like '"+userid+"'",1);
+			    	 String causelist= DatabaseConnectionManager.databaserequest("Select causesallowed from groups where readinguser like '"+session[1]+"' and listetuser like '"+userid+"'",1);
 					 String causeallowed[] = causelist.split(",;");
 			    	list.add(new Employee(userid,causeallowed[0]));
 				}
@@ -125,9 +125,10 @@ public class Clientconnector {
 			}else{
 				jo = ErrorTypeManager.seterror102();
 			}
-		} catch (Exception e) {
+		/*} catch (Exception e) {
 			jo = ErrorTypeManager.seterror100();
-		}
+			jo.addProperty("err", e.toString());
+		}*/
 
 		
 		feeds = jo.toString();
@@ -147,11 +148,11 @@ public class Clientconnector {
 		JsonObject jo= new JsonObject();
 		String feeds  = "";
 		try {
-			String db = DatabaseConnectionManager.databaserequest("Select userid from database.sessions where sessionID like '"+sessionID+"'",1);
+			String db = DatabaseConnectionManager.databaserequest("Select userid from sessions where sessionID like '"+sessionID+"'",1);
 			String[] databaseanswer = db.split(",;");
 			if(sessionID!=null&&databaseanswer[0]!=null)
 			{
-				String db2 = DatabaseConnectionManager.databaserequest("Select username ,tenant, office, empid from database.users where idusers like '"+databaseanswer[0]+"'",4);
+				String db2 = DatabaseConnectionManager.databaserequest("Select username ,tenant, office, empid from users where idusers like '"+databaseanswer[0]+"'",4);
 				String[] databaseanswer2 = db2.split(",");
 				jo.addProperty("type", "success");
 				jo.addProperty("name", databaseanswer2[0]);
@@ -201,12 +202,12 @@ public class Clientconnector {
 					jo = ErrorTypeManager.seterror210();
 				}
 				else{
-					String db = DatabaseConnectionManager.databaserequest("Select pass, idusers from database.users where tenant like '"+tenant+"' and office like '"+office+"' and empid like '"+empid+"'",2);
+					String db = DatabaseConnectionManager.databaserequest("Select pass, idusers from users where tenant like '"+tenant+"' and office like '"+office+"' and empid like '"+empid+"'",2);
 					String[] databaseanswer = db.split(",");
 					if(databaseanswer[0].equals(pass))
 					{
 						String SessionID = SessionManager.uniqesessionID();
-						DatabaseConnectionManager.databaseinsert("INSERT INTO database.sessions (userid,sessionid) VALUES ('"+databaseanswer[1]+"', '"+SessionID+"')");
+						DatabaseConnectionManager.databaseinsert("INSERT INTO sessions (userid,sessionid) VALUES ('"+databaseanswer[1]+"', '"+SessionID+"')");
 						jo.addProperty("type", "success");
 						jo.addProperty("sessionID",SessionID);
 						jo.addProperty("userID",databaseanswer[1]);

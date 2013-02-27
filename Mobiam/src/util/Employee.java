@@ -24,8 +24,9 @@ public class Employee {
     public Employee(String userid,String causeallowed){
     	
     	//select user information by id
-    	String user= DatabaseConnectionManager.databaserequest("Select username, empid, attendance, cause from database.users where idusers like '"+userid+"'",4);
+    	String user= DatabaseConnectionManager.databaserequest("Select username, empid, attendance, cause from users where idusers like '"+userid+"'",4);
     	String data[]= user.split(",");
+    	if(!data[0].equals("")){
 	    	name = data[0];
 	    	id = data[1];
 	    	//translate numbers into boolean
@@ -33,7 +34,7 @@ public class Employee {
 	    	else attendance = false;
 	    	//check if watching user is allowed to see causes
 	    	if(causeallowed.equals("1"))cause = data[3];
-	   
+    	}
     };
 
 }
