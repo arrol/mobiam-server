@@ -8,14 +8,12 @@ import java.sql.Statement;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-
-import com.mysql.jdbc.PreparedStatement;
 /**
  * 
  * @author j-lorra
  *
  */
-public class Databaseconnector {
+public class DatabaseConnectionManager {
 	//database request with String return for reading data
 	/**
 	 * 
@@ -83,19 +81,8 @@ public class Databaseconnector {
 				DataSource ds = (DataSource) ctx.lookup("java:app/jdbc/Mobiam_pool");
 				con = ds.getConnection();
 				java.sql.PreparedStatement stmt = con.prepareStatement(request);
-				stmt.execute();
-				try{
-					
-					
-					stmt.close();  
-				}catch(SQLException  e){
-					e.printStackTrace();
-    				answer ="fehler bei der abfrage";
-					
-				}
-				
-				
-				  				
+				stmt.execute();	
+				stmt.close();    				
 			}catch(SQLException e)
 			{
 				e.printStackTrace();

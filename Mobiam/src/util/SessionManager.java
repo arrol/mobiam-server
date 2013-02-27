@@ -2,7 +2,7 @@ package util;
 
 import java.util.Random;
 
-import database.Databaseconnector;
+import database.DatabaseConnectionManager;
 
 public class SessionManager {
 	//create a unique session ID
@@ -15,7 +15,7 @@ public class SessionManager {
 		for(int i=0; i<30; i++){
 			sessionID+=rand.nextInt(9);
 		}
-		String db = Databaseconnector.databaserequest("select sessionid from database.sessions where sessionid like '"+sessionID+"'",1);
+		String db = DatabaseConnectionManager.databaserequest("select sessionid from database.sessions where sessionid like '"+sessionID+"'",1);
 		if (db!="")sessionID=uniqesessionID();
 		return sessionID;
 	}
@@ -26,7 +26,7 @@ public class SessionManager {
 	 */
 	 public static String[] verifysessionid(String sessionID){
 		String[] sessionok =new String[2] ;
-		String db = Databaseconnector.databaserequest("Select sessionid, userid from database.sessions where sessionID like '"+sessionID+"'",2);
+		String db = DatabaseConnectionManager.databaserequest("Select sessionid, userid from database.sessions where sessionID like '"+sessionID+"'",2);
 		String[] databaseanswer = db.split(",");
 		if(sessionID!=null&&sessionID.equals(databaseanswer[0])){
 			sessionok[0] = "1";

@@ -1,6 +1,9 @@
-package webService;
+package util;
 
-import database.Databaseconnector;
+
+
+
+import database.DatabaseConnectionManager;
 //class generates data for json response list
 /**
  * 
@@ -8,9 +11,6 @@ import database.Databaseconnector;
  */
 public class Employee {
 	
-	public String type ="";
-	public String message;
-	public String errorID;
 	public String id;
     public String name;
     public boolean attendance;
@@ -21,13 +21,11 @@ public class Employee {
      * @param causeallowed
      * @return Data Transfer Object User
      */
-    Employee(String userid,String causeallowed){
+    public Employee(String userid,String causeallowed){
     	
     	//select user information by id
-    	String user= Databaseconnector.databaserequest("Select username, empid, attendance, cause from database.users where idusers like '"+userid+"'",4);
+    	String user= DatabaseConnectionManager.databaserequest("Select username, empid, attendance, cause from database.users where idusers like '"+userid+"'",4);
     	String data[]= user.split(",");
-    	try{
-    		type= "success";
 	    	name = data[0];
 	    	id = data[1];
 	    	//translate numbers into boolean
@@ -35,10 +33,7 @@ public class Employee {
 	    	else attendance = false;
 	    	//check if watching user is allowed to see causes
 	    	if(causeallowed.equals("1"))cause = data[3];
-	    
-    	}catch(Exception e){
-    		
-    	}
+	   
     };
 
 }
