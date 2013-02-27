@@ -28,6 +28,7 @@ import database.DatabaseConnectionManager;
  */
 public class Clientconnector {
 
+
 	/**
 	 * 
 	 * @param sessionID
