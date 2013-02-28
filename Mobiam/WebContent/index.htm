@@ -1,7 +1,16 @@
 <!DOCTYPE html> 
 <html> 
+
+  <!--
+  	-----------------------------
+	  GFOS Innovationsaward 2013
+	         MOBIAM 1.0
+	(C) Niklas Weissner 2012/2013
+	-----------------------------
+  -->
+
   <head> 
-  <title>MOBIAM 0.1</title> 
+  <title>MOBIAM 1.0</title> 
   <link rel="stylesheet" type="text/css" media="screen" href="./lib/jquery.mobile.css" />
   <link rel="stylesheet" type="text/css" media="screen" href="./MOBIAM-Style.css" />
   <meta name="viewport" content="height=device-height,width=device-width,initial-scale=1.0,maximum-scale=1.0">
@@ -11,92 +20,11 @@
   <script src="./lib/jquery.mobile.js"></script>
   <script src="./MOBIAM-Script.js"></script>
   
-  <script>
-  	//-----------------------------
-	//  GFOS Innovationsaward 2013
-	//         MOBIAM 0.1
-	//(C) Niklas Weissner 2012/2013
-	//-----------------------------
-	
-	if(CLIENT_VERSION == "undefined" || CLIENT_VERSION == null)
-	{
-		alert("Das MOBIAM-Systemskript wurde nicht gefunden.\nDie Anwendung kann nicht ordnungsgemäß ausgeführt werden.");	
-	}
-  </script>
 </head> 
-<body> 
+<body>
 
-<div data-role="page" data-theme="b" id="home" data-title="MOBIAM 0.1">
+<div data-role="page" data-theme="b" id="home" data-title="MOBIAM 1.0">
 
-	<!-- Loginformular -->
-	<div data-role="header" id="header_loginForm" data-theme="b" data-nobackbtn="true">
-		<h1>MOBIAM Login</h1>
-	</div>  
-	
-	<div data-role="content" data-theme="b" align="center" id="content_loginForm" data-theme="a">  
-	
-		<div id="loginNotifyLabel"></div>
-		
-		<!-- Loginmaske -->
-		<form action="javascript:doLogin();">
-		
-			<div data-role="fieldcontain">
-				<label for="tenant_input">Mandant</label>
-				<input type="text"  name="tenant_input" id="tenant_input" value="" /><br>
-				<div id="tenant_statuslabel"></div>
-			
-				<label for="office_input">Werk</label>
-				<input type="text" name="office_input" id="office_input"/><br>
-				<div id="office_statuslabel"></div>  
-			
-				<label for="empid_input">Personalnummer</label>
-				<input type="number" pattern="[0-9]*" name="empid_input" id="empid_input"/><br>
-				<div id="empid_statuslabel"></div>  
-			
-				<label for="pass_input">Passwort</label>
-				<input type="password" autocomplete="off" name="pass_input" id="pass_input"/><br>
-				<div id="pass_statuslabel"></div>
-			</div>
-			
-			<div data-role="controlgroup" data-type="horizontal">
-				<input type="submit" class="loginBtt" data-icon="check" value="Login"/>
-				<input type="button" class="clearForm" data-icon="delete" data-iconpos="right" value="Felder l&ouml;schen" onClick="javascript:clearLoginForm();"/>
-			</div> 
-			
-		</form>
-	</div>
-	
-	<div data-role="footer" data-theme="b" id="footer_loginForm"></div>
-	
-	<!-- Datenansicht -->
-	<div data-role="header" id="header_dataView" data-theme="b" data-nobackbtn="true">
-		<h1>MOBIAM</h1>
-	</div> 
-	
-	<div data-role="content" id="content_dataView" data-theme="b">  
-			<div id="welcomeMessage"></div>
-			<br>
-			
-			<div data-role="collapsible-set" data-theme="c" data-content-theme="d">
-				<div data-role="collapsible">
-        			<h3>Filtereinstellungen</h3>
-        			Kommt noch
-    			</div>
-			</div>
-			
-			<!-- Hilfskonstrukt für dynamische Suchleiste -->
-			<div id="dynamicFilterMarker"></div>
-			<div id="dynamicFilter">
-				<ul data-role="listview" data-icon="search" id="dataList" data-filter="true" data-autodividers="true" data-filter-placeholder="Suche Person..." data-filter-theme="d" data-theme="d" data-divider-theme="d">
-					<!-- Anwesenheitsliste (wird vom Skript gefüllt) -->
-				</ul>
-			</div>
-	</div>
-	
-	<div data-role="footer" data-theme="b" id="footer_dataView" data-position="fixed">
-		<a data-icon="delete" href="javascript:doLogout();">Logout</a>
-	</div>
-	
 	<!-- Fehlerseite -->
 	<div data-role="header" id="header_errorPage" data-theme="b" data-nobackbtn="true">
 		<h1>MOBIAM-Fataler Fehler</h1>
@@ -106,20 +34,100 @@
 			<div class="ui-grid-a">
 				<div class="ui-block-a">
 					<h1>Fehler!</h1><br>
+					<p>
+						Es ist ein Fehler aufgetreten der die Funktion des Clients beeintr&auml;chtigen k&ouml;nnte. 
+					</p>
 					<p id="errorInfoLabel">
-						<!-- Fehlerinformationen (werden vom Skript eingefügt) -->
+						<!-- Fehlerinformationen (werden vom Skript eingefügt) 
+						Standartmeldung meldet einen Fehler im Skript der dazu führen
+						könnte dass keine Seiten mehr ausgeblendet werden. In letzterem Fall
+						erhält der User dadurch automatisch einen Hinweis auf den Fehler-->
+						Es ist ein Fehler im Systemskript aufgetreten. Die Oberfl&auml;che konnte nicht initialisiert werden.<br>
+						Dies wird in der Regel durch einen Serverseitig fehlerhaft installierten Clienten verursacht.<br>
+						Eine andere Ursache k&ouml;nnte ein Bug im Client oder fehlerhaft konfigurierter Browser sein. Bitte &uuml;berpr&uuml;fen sie<br>
+						die JavaScript-Einstellungen ihres Browsers und kontaktieren sie gegebenenfalls ihren Systemadmin.
 					</p>
 				</div>
 				<div class="ui-block-b">
-					<img align="right" src="./img/error.png" width=256 height=256 alt=""></img>
+					<!-- Fehlericon stammt aus der Open Icon Library (openiconlibrary.sourceforge.net) -->
+					<img align="right" src="./img/error.png" width=128 height=128 alt=""></img>
 				</div>
 			</div>
+			
+			<a href="javascript:showLoginForm();">Zur&uuml;ck zur Loginseite</a>
 	</div>
 	
 	<div data-role="footer" data-theme="b" id="footer_errorPage">
 	</div>
+
+	<!-- Loginformular -->
+	<div data-role="header" id="header_loginForm" data-theme="b" data-nobackbtn="true">
+		<h1>MOBIAM Login</h1>
+	</div>  
 	
-	<!-- Dialoge und Popups -->
+	<div data-role="content" data-theme="b" id="content_loginForm" data-theme="a">  
+	
+		<div id="loginNotifyLabel"></div>
+		
+		<!-- Loginmaske -->
+		<form id="loginForm" action="javascript:doLogin();">
+		
+			<div data-role="fieldcontain">
+				<label for="tenant_input">Mandant</label>
+				<input type="text"  name="tenant_input" id="tenant_input" value="" />
+				<div align="right" id="tenant_statuslabel"></div>
+			
+				<label for="office_input">Werk</label>
+				<input type="text" name="office_input" id="office_input"/>
+				<div align="right" id="office_statuslabel"></div>  
+			
+				<label for="empid_input">Personal-Nr:</label>
+				<input type="number" pattern="[0-9]*" name="empid_input" id="empid_input"/>
+				<div align="right" id="empid_statuslabel"></div>  
+			
+				<label for="pass_input">Passwort</label>
+				<input type="password" autocomplete="off" name="pass_input" id="pass_input"/>
+				<div align="right" id="pass_statuslabel"></div>
+			</div>
+			
+			<div data-role="controlgroup" align="center" data-type="horizontal">
+				<input type="submit" id="loginBtt" data-icon="check" value="Login"/>
+				<input type="button" id="clearFormBtt" data-icon="delete" data-iconpos="right" onClick="javascript:clearLoginForm();" value="Felder l&ouml;schen"/>
+			</div> 
+			
+		</form>
+	</div>
+	
+	<div data-role="footer" data-theme="b" id="footer_loginForm"></div>
+	
+	<!-- Datenansicht -->
+	<div data-role="header" id="header_dataView" data-theme="b" data-nobackbtn="true">
+		<!-- Entfernt <a href="javascript:refreshDataList();" id="reloadListBtt" class="ui-btn-right" data-icon="refresh" data-iconpos="notext">Liste erneuern</a> -->
+		<h1>MOBIAM</h1>
+	</div> 
+	
+	<div data-role="content" id="content_dataView" data-theme="b">  
+			<div id="welcomeMessage"></div>
+			<br>
+			
+			<!-- Hilfskonstrukt für dynamische Suchleiste -->
+			<div id="dynamicFilterMarker"></div>
+			<div id="dynamicFilter">
+				<ul data-role="listview" id="dataList" data-autodividers="true" data-theme="d" data-divider-theme="d">
+					<!-- Anwesenheitsliste (wird vom Skript gefüllt) -->
+				</ul>
+			</div>
+	</div>
+	
+	<!-- Fußleiste mit Logoutbutton -->
+	<div data-role="footer" data-theme="b" id="footer_dataView" data-position="fixed">
+		<div data-role="navbar">
+        	<ul>
+            	<li><a href="javascript:doLogout();" data-icon="delete" class="ui-btn-active" data-iconpos="notext">Logout</a></li>
+        	</ul>
+   		</div>
+	</div>
+	
 </div>
 
 </body>
